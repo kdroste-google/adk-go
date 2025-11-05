@@ -43,7 +43,7 @@ This Go version of ADK is ideal for developers building cloud-native agent appli
 To add ADK Go to your project, run:
 
 ```bash
-go get github.com/google/adk-go
+go get google.golang.org/adk
 ```
 
 ## 📄 License
