@@ -32,7 +32,7 @@ import (
 	"google.golang.org/adk/session"
 )
 
-// webConfig contains parametres for lauching web server
+// webConfig contains parameters for launching web server
 type webConfig struct {
 	port int
 }

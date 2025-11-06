@@ -30,10 +30,10 @@ import (
 	"google.golang.org/adk/server/adka2a"
 )
 
-// apiPath is a suffix used to build an A2A invokation URL
+// apiPath is a suffix used to build an A2A invocation URL
 const apiPath = "/a2a/invoke"
 
-// a2aConfig contains parameters for lauching ADK A2A server
+// a2aConfig contains parameters for launching ADK A2A server
 type a2aConfig struct {
 	agentURL string // user-provided url which will be used in the agent card to specify url for invoking A2A
 }
