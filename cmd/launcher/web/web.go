@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"google.golang.org/adk/cmd/launcher"
 	"google.golang.org/adk/cmd/launcher/adk"
 	"google.golang.org/adk/cmd/launcher/universal"
 	"google.golang.org/adk/internal/cli/util"
@@ -36,8 +37,8 @@ type webConfig struct {
 	port int
 }
 
-// Launcher can launch web server
-type Launcher struct {
+// webLauncher can launch web server
+type webLauncher struct {
 	flags        *flag.FlagSet
 	config       *webConfig
 	sublaunchers []Sublauncher
@@ -46,7 +47,7 @@ type Launcher struct {
 }
 
 // Execute implements launcher.Launcher.
-func (w *Launcher) Execute(ctx context.Context, config *adk.Config, args []string) error {
+func (w *webLauncher) Execute(ctx context.Context, config *adk.Config, args []string) error {
 	remainingArgs, err := w.Parse(args)
 	if err != nil {
 		return fmt.Errorf("cannot parse args: %w", err)
@@ -78,7 +79,7 @@ type Sublauncher interface {
 }
 
 // CommandLineSyntax implements launcher.Launcher.
-func (w *Launcher) CommandLineSyntax() string {
+func (w *webLauncher) CommandLineSyntax() string {
 	var b strings.Builder
 	fmt.Fprint(&b, util.FormatFlagUsage(w.flags))
 	fmt.Fprintf(&b, "  You may specify sublaunchers:\n")
@@ -93,14 +94,14 @@ func (w *Launcher) CommandLineSyntax() string {
 }
 
 // Keyword implements launcher.SubLauncher.
-func (w *Launcher) Keyword() string {
+func (w *webLauncher) Keyword() string {
 	return "web"
 }
 
 // Parse implements launcher.SubLauncher. It parses the web launcher's flags
 // and then iterates through the remaining arguments to find and parse arguments
 // for any specified sublaunchers. It returns any arguments that are not processed.
-func (w *Launcher) Parse(args []string) ([]string, error) {
+func (w *webLauncher) Parse(args []string) ([]string, error) {
 
 	keyToSublauncher := make(map[string]Sublauncher)
 	for _, l := range w.sublaunchers {
@@ -141,7 +142,7 @@ func (w *Launcher) Parse(args []string) ([]string, error) {
 }
 
 // Run implements launcher.SubLauncher.
-func (w *Launcher) Run(ctx context.Context, config *adk.Config) error {
+func (w *webLauncher) Run(ctx context.Context, config *adk.Config) error {
 	if config.SessionService == nil {
 		config.SessionService = session.InMemoryService()
 	}
@@ -190,20 +191,19 @@ func (w *Launcher) Run(ctx context.Context, config *adk.Config) error {
 }
 
 // SimpleDescription implements launcher.SubLauncher.
-func (w *Launcher) SimpleDescription() string {
+func (w *webLauncher) SimpleDescription() string {
 	return "starts web server with additional sub-servers specified by sublaunchers"
 }
 
 // NewLauncher creates a new WebLauncher. It should be extended by providing
 // one or more Sublaunchers that add the actual content and functionality.
-func NewLauncher(sublaunchers ...Sublauncher) *Launcher {
-
+func NewLauncher(sublaunchers ...Sublauncher) launcher.SubLauncher {
 	config := &webConfig{}
 
 	fs := flag.NewFlagSet("web", flag.ContinueOnError)
 	fs.IntVar(&config.port, "port", 8080, "Localhost port for the server")
 
-	return &Launcher{
+	return &webLauncher{
 		config:       config,
 		flags:        fs,
 		sublaunchers: sublaunchers,
