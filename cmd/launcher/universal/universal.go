@@ -118,7 +118,7 @@ func (l *uniLauncher) CommandLineSyntax() string {
 
 // simpleDescription provides a brief explanation of the universal launcher.
 func (l *uniLauncher) simpleDescription() string {
-	return `Universal launcher acts as a router, routing command line arguments to one of it's sublaunchers. 
+	return `Universal launcher acts as a router, routing command line arguments to one of its sublaunchers. 
 	The sublauncher is chosen by the first argument - a keyword. 
 	If there are no arguments at all or the first one is not recognized by any of the sublaunchers, the first sublauncher is used.`
 }

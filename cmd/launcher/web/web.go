@@ -65,11 +65,11 @@ func (w *webLauncher) Execute(ctx context.Context, config *adk.Config, args []st
 type Sublauncher interface {
 	// Keyword is used to request usage of the Sublauncher from command-line
 	Keyword() string
-	// Parse after parsing command line args returnes the remaining un-parsed arguments or error
+	// Parse after parsing command line args returns the remaining un-parsed arguments or error
 	Parse(args []string) ([]string, error)
-	// CommandLineSyntax returns a formatted string explaing command line syntax to end user
+	// CommandLineSyntax returns a formatted string explaining command line syntax to end user
 	CommandLineSyntax() string
-	// SimpleDescription returns a short explanatory test displayed to end user
+	// SimpleDescription returns a short explanatory text displayed to end user
 	SimpleDescription() string
 
 	// SetupSubrouters adds sublauncher-specific routes to the router.

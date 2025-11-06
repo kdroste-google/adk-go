@@ -436,7 +436,7 @@ func isOtherAgentReply(currentAgentName string, ev *session.Event) bool {
 // a user-content event.
 // This is to provide another aget's output as context to the current agent,
 // so that the current agent can continue to respond, such as summarizing
-// previous agent's reply, etc.
+// the previous agent's reply, etc.
 func ConvertForeignEvent(ev *session.Event) *session.Event {
 	content := utils.Content(ev)
 	if content == nil || len(content.Parts) == 0 {
