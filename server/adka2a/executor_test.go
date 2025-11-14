@@ -288,7 +288,7 @@ func TestExecutor_SessionReuse(t *testing.T) {
 		t.Fatalf("executor.Execute() error = %v, want nil", err)
 	}
 
-	meta := toInvocationMeta(config, reqCtx)
+	meta := toInvocationMeta(config, ctx, reqCtx)
 	sessions, err := sessionService.List(ctx, &session.ListRequest{AppName: runnerConfig.AppName, UserID: meta.userID})
 	if err != nil {
 		t.Fatalf("sessionService.List() error = %v, want nil", err)
@@ -298,7 +298,7 @@ func TestExecutor_SessionReuse(t *testing.T) {
 	}
 
 	reqCtx.ContextID = a2a.NewContextID()
-	otherContextMeta := toInvocationMeta(config, reqCtx)
+	otherContextMeta := toInvocationMeta(config, ctx, reqCtx)
 	if meta.sessionID == otherContextMeta.sessionID {
 		t.Fatal("want sessionID to be different for different contextIDs")
 	}

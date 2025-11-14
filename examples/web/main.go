@@ -48,19 +48,17 @@ func saveReportfunc(ctx agent.CallbackContext, llmResponse *model.LLMResponse, l
 	return llmResponse, llmResponseError
 }
 
+// needed to use 'user' for both a2a and webui (which are sharing the same sessions service)
 type AuthInterceptor struct {
+	a2asrv.PassthroughCallInterceptor
 }
 
-// Intercept implements a2asrv.RequestContextInterceptor.
-func (a *AuthInterceptor) Intercept(ctx context.Context, reqCtx *a2asrv.RequestContext) (context.Context, error) {
-	if reqCtx.Metadata == nil {
-		reqCtx.Metadata = make(map[string]any)
+func (a *AuthInterceptor) Before(ctx context.Context, callCtx *a2asrv.CallContext, req *a2asrv.Request) (context.Context, error) {
+	callCtx.User = &a2asrv.AuthenticatedUser{
+		UserName: "user",
 	}
-	reqCtx.Metadata["adk_user_id"] = "user"
 	return ctx, nil
 }
-
-var _ a2asrv.RequestContextInterceptor = (*AuthInterceptor)(nil)
 
 func main() {
 	ctx := context.Background()
@@ -105,7 +103,7 @@ func main() {
 		SessionService:  sessionService,
 		AgentLoader:     agentLoader,
 		A2AOptions: []a2asrv.RequestHandlerOption{
-			a2asrv.WithRequestContextInterceptor(&AuthInterceptor{}),
+			a2asrv.WithCallInterceptor(&AuthInterceptor{}),
 		},
 	}
 

@@ -15,6 +15,7 @@
 package adka2a
 
 import (
+	"context"
 	"maps"
 
 	"github.com/a2aproject/a2a-go/a2asrv"
@@ -33,13 +34,14 @@ type invocationMeta struct {
 	eventMeta map[string]any
 }
 
-func toInvocationMeta(config ExecutorConfig, reqCtx *a2asrv.RequestContext) invocationMeta {
+func toInvocationMeta(config ExecutorConfig, ctx context.Context, reqCtx *a2asrv.RequestContext) invocationMeta {
 	// TODO(yarolegovich): update once A2A provides auth data extraction from Context
 	userID, sessionID := "A2A_USER_"+reqCtx.ContextID, reqCtx.ContextID
 
-	if reqCtx.Metadata != nil {
-		if reqUserID, ok := reqCtx.Metadata["adk_user_id"].(string); ok {
-			userID = reqUserID
+	// override userID if set in the call context
+	if callCtx, ok := a2asrv.CallContextFrom(ctx); ok {
+		if callCtx.User != nil && callCtx.User.Name() != "" {
+			userID = callCtx.User.Name()
 		}
 	}
 
