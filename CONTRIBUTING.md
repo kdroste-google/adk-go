@@ -15,6 +15,9 @@ We'd love to accept your patches and contributions to this project.
     -   [Unit Tests](#unit-tests)
     -   [Manual End-to-End (E2E) Tests](#manual-end-to-end-e2e-tests)
     -   [Documentation](#documentation)
+    -   [Alignment with adk-python](#alignment-with-adk-python)
+
+
 
 ## Before you begin
 
