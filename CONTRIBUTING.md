@@ -17,8 +17,6 @@ We'd love to accept your patches and contributions to this project.
     -   [Documentation](#documentation)
     -   [Alignment with adk-python](#alignment-with-adk-python)
 
-
-
 ## Before you begin
 
 ### Sign our Contributor License Agreement
