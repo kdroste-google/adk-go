@@ -30,9 +30,6 @@ import (
 )
 
 type artifactAggregation struct {
-	aggregatedText     string
-	aggregatedThoughts string
-
 	parts      []*genai.Part
 	citations  *genai.CitationMetadata
 	grounding  *genai.GroundingMetadata
@@ -134,13 +131,19 @@ func (p *a2aAgentRunProcessor) updateAggregation(aid a2a.ArtifactID, agg *artifa
 	if event.Content != nil {
 		for _, part := range event.Content.Parts {
 			if part.Text != "" { // collapse small text-block parts to bigger text blocks
-				if part.Thought {
-					agg.aggregatedThoughts += part.Text
-				} else {
-					agg.aggregatedText += part.Text
+				if len(agg.parts) > 0 {
+					lastPart := agg.parts[len(agg.parts)-1]
+					// check if last part is a text block of the same 'Thought' type
+					if lastPart.Text != "" && lastPart.Thought == part.Thought {
+						lastPart.Text += part.Text
+						continue
+					}
 				}
+				agg.parts = append(agg.parts, &genai.Part{
+					Text:    part.Text,
+					Thought: part.Thought,
+				})
 			} else {
-				agg.promoteTextBlocksToParts()
 				agg.parts = append(agg.parts, part)
 			}
 		}
@@ -170,7 +173,6 @@ func (p *a2aAgentRunProcessor) updateAggregation(aid a2a.ArtifactID, agg *artifa
 }
 
 func (p *a2aAgentRunProcessor) buildNonPartialAggregation(ctx agent.InvocationContext, agg *artifactAggregation) *session.Event {
-	agg.promoteTextBlocksToParts()
 	parts := agg.parts
 	result := adka2a.NewRemoteAgentEvent(ctx)
 	result.Content = genai.NewContentFromParts(parts, genai.RoleModel)
@@ -179,17 +181,6 @@ func (p *a2aAgentRunProcessor) buildNonPartialAggregation(ctx agent.InvocationCo
 	result.CitationMetadata = agg.citations
 	result.UsageMetadata = agg.usage
 	return result
-}
-
-func (a *artifactAggregation) promoteTextBlocksToParts() {
-	if a.aggregatedThoughts != "" {
-		a.parts = append(a.parts, &genai.Part{Thought: true, Text: a.aggregatedThoughts})
-		a.aggregatedThoughts = ""
-	}
-	if a.aggregatedText != "" {
-		a.parts = append(a.parts, &genai.Part{Text: a.aggregatedText})
-		a.aggregatedText = ""
-	}
 }
 
 // convertToSessionEvent converts A2A client SendStreamingMessage result to a session event. Returns nil if nothing should be emitted.
