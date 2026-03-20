@@ -53,6 +53,8 @@ type Config struct {
 	MemoryService memory.Service
 	// optional
 	PluginConfig PluginConfig
+	// optional
+	AutoCreateSession bool
 }
 
 type PluginConfig struct {
@@ -97,13 +99,14 @@ func New(cfg Config) (*Runner, error) {
 	}
 
 	return &Runner{
-		appName:         cfg.AppName,
-		rootAgent:       cfg.Agent,
-		sessionService:  cfg.SessionService,
-		artifactService: cfg.ArtifactService,
-		memoryService:   cfg.MemoryService,
-		parents:         parents,
-		pluginManager:   pluginManager,
+		appName:           cfg.AppName,
+		rootAgent:         cfg.Agent,
+		sessionService:    cfg.SessionService,
+		artifactService:   cfg.ArtifactService,
+		memoryService:     cfg.MemoryService,
+		parents:           parents,
+		pluginManager:     pluginManager,
+		autoCreateSession: cfg.AutoCreateSession,
 	}, nil
 }
 
@@ -117,8 +120,9 @@ type Runner struct {
 	artifactService artifact.Service
 	memoryService   memory.Service
 
-	parents       parentmap.Map
-	pluginManager *plugininternal.PluginManager
+	parents           parentmap.Map
+	pluginManager     *plugininternal.PluginManager
+	autoCreateSession bool
 }
 
 // Run runs the agent for the given user input, yielding events from agents.
@@ -134,17 +138,30 @@ func (r *Runner) Run(ctx context.Context, userID, sessionID string, msg *genai.C
 			opt(&options)
 		}
 
-		resp, err := r.sessionService.Get(ctx, &session.GetRequest{
+		var storedSession session.Session
+		getResp, err := r.sessionService.Get(ctx, &session.GetRequest{
 			AppName:   r.appName,
 			UserID:    userID,
 			SessionID: sessionID,
 		})
 		if err != nil {
-			yield(nil, err)
-			return
+			if !r.autoCreateSession {
+				yield(nil, err)
+				return
+			}
+			createResp, err := r.sessionService.Create(ctx, &session.CreateRequest{
+				AppName:   r.appName,
+				UserID:    userID,
+				SessionID: sessionID,
+			})
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			storedSession = createResp.Session
+		} else {
+			storedSession = getResp.Session
 		}
-
-		storedSession := resp.Session
 
 		agentToRun, err := r.findAgentToRun(storedSession, msg)
 		if err != nil {
