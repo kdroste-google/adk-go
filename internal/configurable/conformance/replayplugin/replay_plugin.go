@@ -133,8 +133,8 @@ func (p *replayPlugin) beforeModel(ctx agent.CallbackContext, req *model.LLMRequ
 }
 
 // beforeTool intercepts tool calls, verifies them against the recording, and returns the recorded response.
-func (p *replayPlugin) beforeTool(ctx tool.Context, t tool.Tool, args map[string]any) (map[string]any, error) {
-	on, err := p.isReplayModeOn(ctx.State())
+func (p *replayPlugin) beforeTool(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args map[string]any) (map[string]any, error) {
+	on, err := p.isReplayModeOn(adkSpan.State())
 	if err != nil {
 		return nil, err
 	}

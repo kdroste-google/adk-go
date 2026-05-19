@@ -22,6 +22,7 @@ import (
 	"google.golang.org/genai"
 
 	"google.golang.org/adk/agent"
+	unicontext "google.golang.org/adk/context"
 	"google.golang.org/adk/internal/plugininternal/plugincontext"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/plugin"
@@ -168,11 +169,11 @@ func (pm *PluginManager) RunAfterAgentCallback(cctx agent.CallbackContext) (*gen
 }
 
 // RunBeforeToolCallback runs the BeforeToolCallback for all plugins.
-func (pm *PluginManager) RunBeforeToolCallback(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error) {
+func (pm *PluginManager) RunBeforeToolCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any) (map[string]any, error) {
 	for _, plugin := range pm.plugins {
 		callback := plugin.BeforeToolCallback()
 		if callback != nil {
-			newArgs, err := callback(ctx, tool, args)
+			newArgs, err := callback(pureCtx, adkSpan, tool, args)
 			if err != nil {
 				return nil, err
 			}
@@ -185,11 +186,11 @@ func (pm *PluginManager) RunBeforeToolCallback(ctx tool.Context, tool tool.Tool,
 }
 
 // RunAfterToolCallback runs the AfterToolCallback for all plugins.
-func (pm *PluginManager) RunAfterToolCallback(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+func (pm *PluginManager) RunAfterToolCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 	for _, plugin := range pm.plugins {
 		callback := plugin.AfterToolCallback()
 		if callback != nil {
-			newResult, err := callback(ctx, tool, args, result, err)
+			newResult, err := callback(pureCtx, adkSpan, tool, args, result, err)
 			if err != nil {
 				return nil, err
 			}
@@ -202,11 +203,11 @@ func (pm *PluginManager) RunAfterToolCallback(ctx tool.Context, tool tool.Tool, 
 }
 
 // RunOnToolErrorCallback runs the OnToolErrorCallback for all plugins.
-func (pm *PluginManager) RunOnToolErrorCallback(ctx tool.Context, tool tool.Tool, args map[string]any, err error) (map[string]any, error) {
+func (pm *PluginManager) RunOnToolErrorCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any, err error) (map[string]any, error) {
 	for _, plugin := range pm.plugins {
 		callback := plugin.OnToolErrorCallback()
 		if callback != nil {
-			newResult, err := callback(ctx, tool, args, err)
+			newResult, err := callback(pureCtx, adkSpan, tool, args, err)
 			if err != nil {
 				return nil, err
 			}

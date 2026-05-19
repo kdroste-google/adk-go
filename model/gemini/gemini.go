@@ -43,7 +43,7 @@ type geminiModel struct {
 //
 // It uses the provided context and configuration to initialize the underlying
 // [genai.Client]. The modelName specifies which Gemini model to target
-// (e.g., "gemini-2.5-flash").
+// (e.g., "gemini-3.1-flash-lite").
 //
 // An error is returned if the [genai.Client] fails to initialize.
 func NewModel(ctx context.Context, modelName string, cfg *genai.ClientConfig) (model.LLM, error) {

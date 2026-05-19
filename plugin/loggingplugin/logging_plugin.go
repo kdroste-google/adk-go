@@ -21,6 +21,7 @@ import (
 	"google.golang.org/genai"
 
 	"google.golang.org/adk/agent"
+	unicontext "google.golang.org/adk/context"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/plugin"
 	"google.golang.org/adk/session"
@@ -279,20 +280,20 @@ func (p *loggingPlugin) onModelError(ctx agent.CallbackContext, req *model.LLMRe
 	return nil, nil
 }
 
-func (p *loggingPlugin) beforeTool(ctx tool.Context, t tool.Tool, args map[string]any) (map[string]any, error) {
+func (p *loggingPlugin) beforeTool(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args map[string]any) (map[string]any, error) {
 	p.log("🔧 TOOL STARTING")
 	p.log(fmt.Sprintf("   Tool Name: %s", t.Name()))
-	p.log(fmt.Sprintf("   Agent: %s", ctx.AgentName()))
-	p.log(fmt.Sprintf("   Function Call ID: %s", ctx.FunctionCallID()))
+	p.log(fmt.Sprintf("   Agent: %s", adkSpan.AgentName()))
+	p.log(fmt.Sprintf("   Function Call ID: %s", adkSpan.FunctionCallID()))
 	p.log(fmt.Sprintf("   Arguments: %s", p.formatArgs(args, 300)))
 	return nil, nil
 }
 
-func (p *loggingPlugin) afterTool(ctx tool.Context, t tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+func (p *loggingPlugin) afterTool(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 	p.log("🔧 TOOL COMPLETED")
 	p.log(fmt.Sprintf("   Tool Name: %s", t.Name()))
-	p.log(fmt.Sprintf("   Agent: %s", ctx.AgentName()))
-	p.log(fmt.Sprintf("   Function Call ID: %s", ctx.FunctionCallID()))
+	p.log(fmt.Sprintf("   Agent: %s", adkSpan.AgentName()))
+	p.log(fmt.Sprintf("   Function Call ID: %s", adkSpan.FunctionCallID()))
 	if err != nil {
 		p.log(fmt.Sprintf("   Error: %v", err))
 	} else {
@@ -301,11 +302,11 @@ func (p *loggingPlugin) afterTool(ctx tool.Context, t tool.Tool, args, result ma
 	return nil, nil
 }
 
-func (p *loggingPlugin) onToolError(ctx tool.Context, t tool.Tool, args map[string]any, err error) (map[string]any, error) {
+func (p *loggingPlugin) onToolError(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args map[string]any, err error) (map[string]any, error) {
 	p.log("🔧 TOOL ERROR")
 	p.log(fmt.Sprintf("   Tool Name: %s", t.Name()))
-	p.log(fmt.Sprintf("   Agent: %s", ctx.AgentName()))
-	p.log(fmt.Sprintf("   Function Call ID: %s", ctx.FunctionCallID()))
+	p.log(fmt.Sprintf("   Agent: %s", adkSpan.AgentName()))
+	p.log(fmt.Sprintf("   Function Call ID: %s", adkSpan.FunctionCallID()))
 	p.log(fmt.Sprintf("   Arguments: %s", p.formatArgs(args, 300)))
 	p.log(fmt.Sprintf("   Error: %v", err))
 	return nil, nil

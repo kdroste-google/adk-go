@@ -18,6 +18,7 @@ package toolinternal
 import (
 	"google.golang.org/genai"
 
+	unicontext "google.golang.org/adk/context"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/tool"
 )
@@ -25,9 +26,9 @@ import (
 type FunctionTool interface {
 	tool.Tool
 	Declaration() *genai.FunctionDeclaration
-	Run(ctx tool.Context, args any) (result map[string]any, err error)
+	Run(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, args any) (result map[string]any, err error)
 }
 
 type RequestProcessor interface {
-	ProcessRequest(ctx tool.Context, req *model.LLMRequest) error
+	ProcessRequest(ctx unicontext.PureContext, adkSpan unicontext.AdkSpan, req *model.LLMRequest) error
 }

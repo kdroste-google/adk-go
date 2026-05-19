@@ -29,6 +29,7 @@ import (
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
+	unicontext "google.golang.org/adk/context"
 	"google.golang.org/adk/internal/utils"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/runner"
@@ -366,11 +367,11 @@ func LogActivity(ctx tool.Context, params LogActivityParams) (LogActivityResult,
 
 // --- Before Tool Callbacks ---
 
-func beforeToolAuditCallback(ctx tool.Context, t tool.Tool, args map[string]any) (map[string]any, error) {
+func beforeToolAuditCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args map[string]any) (map[string]any, error) {
 	fmt.Printf("🔍 AUDIT: About to call tool '%s' with args: %v\n", t.Name(), args)
 
 	var auditLog []map[string]any
-	val, err := ctx.State().Get("audit_log")
+	val, err := adkSpan.State().Get("audit_log")
 	if err == nil {
 		auditLog, _ = val.([]map[string]any)
 	}
@@ -381,13 +382,13 @@ func beforeToolAuditCallback(ctx tool.Context, t tool.Tool, args map[string]any)
 		"args":      args,
 		"timestamp": time.Now(),
 	})
-	if err := ctx.State().Set("audit_log", auditLog); err != nil {
+	if err := adkSpan.State().Set("audit_log", auditLog); err != nil {
 		return nil, err
 	}
 	return nil, nil // Continue execution
 }
 
-func beforeToolSecurityCallback(ctx tool.Context, t tool.Tool, args map[string]any) (map[string]any, error) {
+func beforeToolSecurityCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args map[string]any) (map[string]any, error) {
 	if t.Name() == "get_weather" {
 		location := ""
 		if loc, ok := args["location"].(string); ok {
@@ -397,7 +398,7 @@ func beforeToolSecurityCallback(ctx tool.Context, t tool.Tool, args map[string]a
 		for _, r := range restricted {
 			if strings.ToLower(location) == r {
 				fmt.Printf("🚫 SECURITY: Blocked weather request for restricted location: %s\n", location)
-				if err := ctx.State().Set("security_log", "example"); err != nil {
+				if err := adkSpan.State().Set("security_log", "example"); err != nil {
 					return nil, err
 				}
 				return map[string]any{
@@ -411,7 +412,7 @@ func beforeToolSecurityCallback(ctx tool.Context, t tool.Tool, args map[string]a
 	return nil, nil // Continue execution
 }
 
-func beforeToolValidationCallback(ctx tool.Context, t tool.Tool, args map[string]any) (map[string]any, error) {
+func beforeToolValidationCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args map[string]any) (map[string]any, error) {
 	if t.Name() == "calculate" {
 		operation, _ := args["operation"].(string)
 		y, yOK := args["y"].(float64)
@@ -430,7 +431,7 @@ func beforeToolValidationCallback(ctx tool.Context, t tool.Tool, args map[string
 
 // --- After Tool Callbacks ---
 
-func afterToolEnhancementCallback(ctx tool.Context, t tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+func afterToolEnhancementCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 	if err != nil {
 		return result, err // Don't enhance if there was an error
 	}
@@ -444,7 +445,7 @@ func afterToolEnhancementCallback(ctx tool.Context, t tool.Tool, args, result ma
 	return enhancedResponse, nil
 }
 
-func afterToolAsyncCallback(ctx tool.Context, t tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+func afterToolAsyncCallback(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, t tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 	if err != nil {
 		return result, err
 	}

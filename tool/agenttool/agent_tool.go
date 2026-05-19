@@ -251,6 +251,6 @@ func (t *agentTool) Run(toolCtx tool.Context, args any) (map[string]any, error) 
 }
 
 // ProcessRequest adds the agent tool's function declaration to the LLM request.
-func (t *agentTool) ProcessRequest(ctx tool.Context, req *model.LLMRequest) error {
+func (t *agentTool) ProcessRequest(_ tool.Context, req *model.LLMRequest) error {
 	return toolutils.PackTool(req, t)
 }

@@ -431,7 +431,7 @@ func TestAgentTransfer_ProcessRequest(t *testing.T) {
 	if !ok {
 		t.Fatal("identityTool does not implement itype.RequestProcessor")
 	}
-	if err := requestProcessor.ProcessRequest(nil, &req); err != nil {
+	if err := requestProcessor.ProcessRequest(nil, nil, &req); err != nil {
 		t.Fatalf("identityTool.ProcessRequest failed: %v", err)
 	}
 	// Second tool

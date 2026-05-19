@@ -315,10 +315,10 @@ func TestSetModelResponseTool(t *testing.T) {
 
 	t.Run("RunSuccess", func(t *testing.T) {
 		invCtx := icontext.NewInvocationContext(context.Background(), icontext.InvocationContextParams{})
-		toolCtx := toolinternal.NewToolContext(invCtx, "", nil, nil)
+		pureCtx, adkSpan := toolinternal.NewToolContext(invCtx, "", nil, nil)
 
 		input := map[string]any{"count": 10.0} // JSON numbers often come as float64
-		got, err := toolInstance.Run(toolCtx, input)
+		got, err := toolInstance.Run(pureCtx, adkSpan, input)
 		if err != nil {
 			t.Fatalf("Run failed: %v", err)
 		}
@@ -329,10 +329,10 @@ func TestSetModelResponseTool(t *testing.T) {
 
 	t.Run("RunValidationFailure_Type", func(t *testing.T) {
 		invCtx := icontext.NewInvocationContext(context.Background(), icontext.InvocationContextParams{})
-		toolCtx := toolinternal.NewToolContext(invCtx, "", nil, nil)
+		pureCtx, adkSpan := toolinternal.NewToolContext(invCtx, "", nil, nil)
 
 		input := map[string]any{"count": "not a number"}
-		_, err := toolInstance.Run(toolCtx, input)
+		_, err := toolInstance.Run(pureCtx, adkSpan, input)
 		if err == nil {
 			t.Error("Expected validation error for invalid type, got nil")
 		}
@@ -340,10 +340,10 @@ func TestSetModelResponseTool(t *testing.T) {
 
 	t.Run("RunValidationFailure_MissingRequired", func(t *testing.T) {
 		invCtx := icontext.NewInvocationContext(context.Background(), icontext.InvocationContextParams{})
-		toolCtx := toolinternal.NewToolContext(invCtx, "", nil, nil)
+		pureCtx, adkSpan := toolinternal.NewToolContext(invCtx, "", nil, nil)
 
 		input := map[string]any{"other": 123}
-		_, err := toolInstance.Run(toolCtx, input)
+		_, err := toolInstance.Run(pureCtx, adkSpan, input)
 		if err == nil {
 			t.Error("Expected validation error for missing required field, got nil")
 		}

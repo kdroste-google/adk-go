@@ -23,10 +23,10 @@ import (
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/artifact"
+	unicontext "google.golang.org/adk/context"
 	contextinternal "google.golang.org/adk/internal/context"
 	"google.golang.org/adk/memory"
 	"google.golang.org/adk/session"
-	"google.golang.org/adk/tool"
 	"google.golang.org/adk/tool/toolconfirmation"
 )
 
@@ -50,7 +50,7 @@ func (ia *internalArtifacts) Save(ctx context.Context, name string, data *genai.
 	return resp, nil
 }
 
-func NewToolContext(ctx agent.InvocationContext, functionCallID string, actions *session.EventActions, confirmation *toolconfirmation.ToolConfirmation) tool.Context {
+func NewToolContext(ctx context.Context, functionCallID string, actions *session.EventActions, confirmation *toolconfirmation.ToolConfirmation) (unicontext.PureContext, unicontext.AdkSpan) {
 	if functionCallID == "" {
 		functionCallID = uuid.NewString()
 	}
@@ -65,17 +65,21 @@ func NewToolContext(ctx agent.InvocationContext, functionCallID string, actions 
 	}
 	cbCtx := contextinternal.NewCallbackContextWithDelta(ctx, actions.StateDelta, actions.ArtifactDelta)
 
-	return &toolContext{
-		CallbackContext:   cbCtx,
-		invocationContext: ctx,
-		functionCallID:    functionCallID,
-		eventActions:      actions,
-		artifacts: &internalArtifacts{
-			Artifacts:    ctx.Artifacts(),
-			eventActions: actions,
-		},
-		toolConfirmation: confirmation,
-	}
+	pureCtx := unicontext.NewPureContext(ctx)
+	adkSpan := unicontext.NewToolSpan()
+
+	return pureCtx, adkSpan
+	// return &toolContext{
+	// 	CallbackContext:   cbCtx,
+	// 	invocationContext: ctx,
+	// 	functionCallID:    functionCallID,
+	// 	eventActions:      actions,
+	// 	artifacts: &internalArtifacts{
+	// 		Artifacts:    ctx.Artifacts(),
+	// 		eventActions: actions,
+	// 	},
+	// 	toolConfirmation: confirmation,
+	// }
 }
 
 type toolContext struct {

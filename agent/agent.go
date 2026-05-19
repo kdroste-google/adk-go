@@ -26,6 +26,7 @@ import (
 	agentinternal "google.golang.org/adk/internal/agent"
 	"google.golang.org/adk/internal/plugininternal/plugincontext"
 	"google.golang.org/adk/internal/telemetry"
+	contextinternal "google.golang.org/adk/internal/utils/context"
 	"google.golang.org/adk/memory"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/session"
@@ -194,6 +195,7 @@ func (a *agent) Run(ctx InvocationContext) iter.Seq2[*session.Event, error] {
 			return
 		}
 
+		contextinternal.DumpToLog(ctx, "before agent.run")
 		for event, err := range a.run(ctx) {
 			if event != nil && event.Author == "" {
 				event.Author = getAuthorForEvent(ctx, event)

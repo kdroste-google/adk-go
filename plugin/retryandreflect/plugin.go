@@ -28,6 +28,7 @@ import (
 	"sync"
 	"text/template"
 
+	unicontext "google.golang.org/adk/context"
 	"google.golang.org/adk/plugin"
 	"google.golang.org/adk/tool"
 
@@ -124,7 +125,7 @@ func MustNew(opts ...PluginOption) *plugin.Plugin {
 	return p
 }
 
-func (r *retryAndReflect) afterTool(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+func (r *retryAndReflect) afterTool(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 	if err == nil {
 		isReflectResponse := false
 		if rt, ok := result["response_type"].(string); ok && rt == reflectAndRetryResponseType {

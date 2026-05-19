@@ -28,6 +28,7 @@ import (
 
 	"google.golang.org/adk/agent"
 	"google.golang.org/adk/agent/llmagent"
+	unicontext "google.golang.org/adk/context"
 	"google.golang.org/adk/internal/testutil"
 	"google.golang.org/adk/model"
 	"google.golang.org/adk/model/gemini"
@@ -468,10 +469,10 @@ func TestToolCallback(t *testing.T) {
 			DisallowTransferToPeers:  true,
 			Tools:                    []tool.Tool{rand},
 			BeforeToolCallbacks: []llmagent.BeforeToolCallback{
-				func(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any) (map[string]any, error) {
 					return nil, nil
 				},
-				func(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any) (map[string]any, error) {
 					return map[string]any{"number": "7"}, nil
 				},
 			},
@@ -504,10 +505,10 @@ func TestToolCallback(t *testing.T) {
 			Tools:                    []tool.Tool{rand},
 			BeforeToolCallbacks: []llmagent.BeforeToolCallback{
 				// Since it retursn non nil, the next callback won't be executed.
-				func(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any) (map[string]any, error) {
 					return map[string]any{"number": "3"}, nil
 				},
-				func(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any) (map[string]any, error) {
 					return map[string]any{"number": "7"}, nil
 				},
 			},
@@ -539,10 +540,10 @@ func TestToolCallback(t *testing.T) {
 			DisallowTransferToPeers:  true,
 			Tools:                    []tool.Tool{rand},
 			AfterToolCallbacks: []llmagent.AfterToolCallback{
-				func(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 					return nil, nil
 				},
-				func(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 					return map[string]any{"number": "7"}, nil
 				},
 			},
@@ -575,10 +576,10 @@ func TestToolCallback(t *testing.T) {
 			Tools:                    []tool.Tool{rand},
 			AfterToolCallbacks: []llmagent.AfterToolCallback{
 				// Since it retursn non nil, the next callback won't be executed.
-				func(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 					return map[string]any{"number": "3"}, nil
 				},
-				func(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 					return map[string]any{"number": "7"}, nil
 				},
 			},
@@ -610,12 +611,12 @@ func TestToolCallback(t *testing.T) {
 			DisallowTransferToPeers:  true,
 			Tools:                    []tool.Tool{rand},
 			BeforeToolCallbacks: []llmagent.BeforeToolCallback{
-				func(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any) (map[string]any, error) {
 					return map[string]any{"number": "3"}, nil
 				},
 			},
 			AfterToolCallbacks: []llmagent.AfterToolCallback{
-				func(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 					return map[string]any{"number": "7"}, nil
 				},
 			},
@@ -647,12 +648,12 @@ func TestToolCallback(t *testing.T) {
 			DisallowTransferToPeers:  true,
 			Tools:                    []tool.Tool{rand},
 			BeforeToolCallbacks: []llmagent.BeforeToolCallback{
-				func(ctx tool.Context, tool tool.Tool, args map[string]any) (map[string]any, error) {
+				func(pureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args map[string]any) (map[string]any, error) {
 					return nil, nil
 				},
 			},
 			AfterToolCallbacks: []llmagent.AfterToolCallback{
-				func(ctx tool.Context, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
+				func(ctxpureCtx unicontext.PureContext, adkSpan unicontext.AdkSpan, tool tool.Tool, args, result map[string]any, err error) (map[string]any, error) {
 					return nil, nil
 				},
 			},
