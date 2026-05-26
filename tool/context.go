@@ -13,18 +13,3 @@
 // limitations under the License.
 
 package tool
-
-import (
-	"google.golang.org/adk/agent"
-	"google.golang.org/adk/session"
-	"google.golang.org/adk/tool/toolconfirmation"
-)
-
-// NewToolContext constructs a ToolContext for a tool execution.
-//
-// Deprecated: use agent.NewToolContext directly. This wrapper exists only
-// to minimize churn during the migration and will be removed in a future
-// release.
-func NewToolContext(ic agent.InvocationContext, functionCallID string, actions *session.EventActions, confirmation *toolconfirmation.ToolConfirmation) Context {
-	return agent.NewToolContext(ic, functionCallID, actions, confirmation)
-}
