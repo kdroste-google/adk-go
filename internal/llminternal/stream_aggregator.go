@@ -16,8 +16,8 @@ package llminternal
 
 import (
 	"context"
-	"fmt"
 	"iter"
+	"log"
 	"maps"
 	"reflect"
 	"strings"
@@ -61,9 +61,12 @@ func (s *streamingResponseAggregator) ProcessResponse(ctx context.Context, genRe
 	return func(yield func(*model.LLMResponse, error) bool) {
 		if len(genResp.Candidates) == 0 {
 			// shouldn't happen?
-			yield(nil, fmt.Errorf("empty response"))
+			log.Printf("empty response")
+			// yield(nil, fmt.Errorf("\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>> empty response\n"))
 			return
 		}
+		log.Printf("\nnon-empty response\n")
+
 		candidate := genResp.Candidates[0]
 		resp := converters.Genai2LLMResponse(genResp)
 		resp.TurnComplete = candidate.FinishReason != ""
