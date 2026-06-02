@@ -37,6 +37,7 @@ func NewBaseNodeWithSchemas(
 	cfg NodeConfig,
 	inputSchema, outputSchema *jsonschema.Resolved,
 ) BaseNode {
+	defer debugExit(debugEnter("NewBaseNodeWithSchemas"))
 	return BaseNode{
 		name:         name,
 		desc:         description,
@@ -59,30 +60,48 @@ func NewBaseNodeWithSchemas(
 //	    return &CustomNode{BaseNode: NewBaseNode(name, "", cfg)}
 //	}
 func NewBaseNode(name, description string, cfg NodeConfig) BaseNode {
+	defer debugExit(debugEnter("NewBaseNode"))
 	return NewBaseNodeWithSchemas(name, description, cfg, nil, nil)
 }
 
 // Name returns the node's name.
-func (b BaseNode) Name() string { return b.name }
+func (b BaseNode) Name() string {
+	defer debugExit(debugEnter("BaseNode.Name"))
+	return b.name
+}
 
 // Description returns the node's human-readable description.
-func (b BaseNode) Description() string { return b.desc }
+func (b BaseNode) Description() string {
+	defer debugExit(debugEnter("BaseNode.Description"))
+	return b.desc
+}
 
 // Config returns the node's configuration.
-func (b BaseNode) Config() NodeConfig { return b.config }
+func (b BaseNode) Config() NodeConfig {
+	defer debugExit(debugEnter("BaseNode.Config"))
+	return b.config
+}
 
 // InputSchema returns the node's input validation schema.
-func (b BaseNode) InputSchema() *jsonschema.Resolved { return b.inputSchema }
+func (b BaseNode) InputSchema() *jsonschema.Resolved {
+	defer debugExit(debugEnter("BaseNode.InputSchema"))
+	return b.inputSchema
+}
 
 // OutputSchema returns the node's output validation schema.
-func (b BaseNode) OutputSchema() *jsonschema.Resolved { return b.outputSchema }
+func (b BaseNode) OutputSchema() *jsonschema.Resolved {
+	defer debugExit(debugEnter("BaseNode.OutputSchema"))
+	return b.outputSchema
+}
 
 // ValidateInput validates and coerces the input using the node's input schema.
 func (b BaseNode) ValidateInput(in any) (any, error) {
+	defer debugExit(debugEnter("BaseNode.ValidateInput"))
 	return defaultValidateInput(in, b.inputSchema)
 }
 
 func defaultValidateInput(in any, schema *jsonschema.Resolved) (any, error) {
+	defer debugExit(debugEnter("defaultValidateInput"))
 	if schema == nil {
 		return in, nil
 	}

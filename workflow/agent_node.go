@@ -37,6 +37,7 @@ type AgentNode struct {
 // newAgentNodeWithSchemasTyped creates a new node wrapping an agent with explicitly provided schemas.
 // If a schema is nil, it will be inferred from the corresponding generic type Input or Output.
 func newAgentNodeWithSchemasTyped[Input, Output any](a agent.Agent, inputSchema, outputSchema *jsonschema.Schema, cfg NodeConfig) (*AgentNode, error) {
+	defer debugExit(debugEnter("newAgentNodeWithSchemasTyped"))
 	if a == nil {
 		return nil, fmt.Errorf("agent cannot be nil")
 	}
@@ -58,24 +59,29 @@ func newAgentNodeWithSchemasTyped[Input, Output any](a agent.Agent, inputSchema,
 // NewAgentNodeWithSchemas is a convenience wrapper for NewAgentNodeWithSchemasTyped[any, any].
 // It uses explicitly provided schemas for both input and output.
 func NewAgentNodeWithSchemas(a agent.Agent, inputSchema, outputSchema *jsonschema.Schema, cfg NodeConfig) (*AgentNode, error) {
+	defer debugExit(debugEnter("NewAgentNodeWithSchemas"))
 	return newAgentNodeWithSchemasTyped[any, any](a, inputSchema, outputSchema, cfg)
 }
 
 // NewAgentNodeTyped creates a new node wrapping an agent using generics to
 // automatically infer input and output schemas from the provided types.
 func NewAgentNodeTyped[Input, Output any](a agent.Agent, cfg NodeConfig) (*AgentNode, error) {
+	defer debugExit(debugEnter("NewAgentNodeTyped"))
 	return newAgentNodeWithSchemasTyped[Input, Output](a, nil, nil, cfg)
 }
 
 // NewAgentNode creates a new node wrapping an agent. Input and output schemas
 // are inferred as `any`.
 func NewAgentNode(a agent.Agent, cfg NodeConfig) (*AgentNode, error) {
+	defer debugExit(debugEnter("NewAgentNode"))
 	return NewAgentNodeTyped[any, any](a, cfg)
 }
 
 // Run implements the Node interface.
 func (n *AgentNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("AgentNode.Run"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("AgentNode.Run.iter"))
 		validatedInput, err := n.ValidateInput(input)
 		if err != nil {
 			yield(nil, err)
@@ -141,6 +147,7 @@ func (n *AgentNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*sessi
 // text on final model responses so RunNode returns the agent's
 // reply instead of the zero value.
 func synthesizeAgentOutput(event *session.Event) {
+	defer debugExit(debugEnter("synthesizeAgentOutput"))
 	if event == nil || event.Output != nil {
 		return
 	}

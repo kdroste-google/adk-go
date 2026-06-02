@@ -75,7 +75,9 @@ func (w *Workflow) Resume(
 	state *RunState,
 	responses map[string]any,
 ) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("Workflow.Resume"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("Workflow.Resume.iter"))
 		if state == nil || len(responses) == 0 {
 			return
 		}
@@ -211,6 +213,7 @@ func (w *Workflow) Resume(
 // RunState round-trips schemas through JSON, which does not
 // preserve any pre-resolved form.
 func validateResumeResponse(resp any, schema *jsonschema.Schema) (any, error) {
+	defer debugExit(debugEnter("validateResumeResponse"))
 	if schema == nil {
 		return resp, nil
 	}

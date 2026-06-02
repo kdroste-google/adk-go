@@ -21,11 +21,13 @@ type EdgeBuilder struct {
 
 // NewEdgeBuilder creates a new EdgeBuilder.
 func NewEdgeBuilder() *EdgeBuilder {
+	defer debugExit(debugEnter("NewEdgeBuilder"))
 	return &EdgeBuilder{}
 }
 
 // Add adds a new edge between two nodes.
 func (b *EdgeBuilder) Add(from, to Node) *EdgeBuilder {
+	defer debugExit(debugEnter("EdgeBuilder.Add"))
 	b.edges = append(b.edges, Edge{From: from, To: to})
 	return b
 }
@@ -34,12 +36,14 @@ func (b *EdgeBuilder) Add(from, to Node) *EdgeBuilder {
 // The route condition is of type any and is converted to a Route interface.
 // Supported routes are StringRoute, IntRoute, BoolRoute and MultiRoute.
 func (b *EdgeBuilder) AddRoute(from, to Node, route Route) *EdgeBuilder {
+	defer debugExit(debugEnter("EdgeBuilder.AddRoute"))
 	b.edges = append(b.edges, Edge{From: from, To: to, Route: route})
 	return b
 }
 
 // AddFanOut adds multiple edges from a single source node to multiple target nodes.
 func (b *EdgeBuilder) AddFanOut(from Node, to ...Node) *EdgeBuilder {
+	defer debugExit(debugEnter("EdgeBuilder.AddFanOut"))
 	for _, t := range to {
 		b.Add(from, t)
 	}
@@ -48,6 +52,7 @@ func (b *EdgeBuilder) AddFanOut(from Node, to ...Node) *EdgeBuilder {
 
 // AddFanIn adds multiple edges from multiple source nodes to a single target node.
 func (b *EdgeBuilder) AddFanIn(to Node, from ...Node) *EdgeBuilder {
+	defer debugExit(debugEnter("EdgeBuilder.AddFanIn"))
 	for _, f := range from {
 		b.Add(f, to)
 	}
@@ -56,6 +61,7 @@ func (b *EdgeBuilder) AddFanIn(to Node, from ...Node) *EdgeBuilder {
 
 // AddRoutes adds multiple edges from a single source node to multiple target nodes with different route conditions.
 func (b *EdgeBuilder) AddRoutes(from Node, routes map[string]Node) *EdgeBuilder {
+	defer debugExit(debugEnter("EdgeBuilder.AddRoutes"))
 	for route, to := range routes {
 		b.AddRoute(from, to, StringRoute(route))
 	}
@@ -64,11 +70,13 @@ func (b *EdgeBuilder) AddRoutes(from Node, routes map[string]Node) *EdgeBuilder 
 
 // Build returns the list of edges.
 func (b *EdgeBuilder) Build() []Edge {
+	defer debugExit(debugEnter("EdgeBuilder.Build"))
 	return b.edges
 }
 
 // Chain generates a slice of Edges to form a chain of nodes.
 func Chain(nodes ...Node) []Edge {
+	defer debugExit(debugEnter("Chain"))
 	if len(nodes) < 2 {
 		return nil
 	}
@@ -81,6 +89,7 @@ func Chain(nodes ...Node) []Edge {
 
 // Concat combines Edges and []Edge slices into a single slice of edges.
 func Concat(items ...any) []Edge {
+	defer debugExit(debugEnter("Concat"))
 	var edges []Edge
 	for _, item := range items {
 		switch v := item.(type) {

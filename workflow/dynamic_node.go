@@ -45,6 +45,7 @@ type dynamicNode[IN, OUT any] struct {
 // orchestrator and deliver cached child results); explicit &false is
 // respected.
 func NewDynamicNode[IN, OUT any](name string, fn DynamicFn[IN, OUT], cfg NodeConfig) Node {
+	defer debugExit(debugEnter("NewDynamicNode"))
 	return newDynamicNodeWithResolvedSchemas[IN, OUT](name, fn, nil, nil, applyDynamicDefaults(cfg))
 }
 
@@ -55,6 +56,7 @@ func NewDynamicNodeWithSchema[IN, OUT any](
 	inputSchema, outputSchema *jsonschema.Schema,
 	cfg NodeConfig,
 ) (Node, error) {
+	defer debugExit(debugEnter("NewDynamicNodeWithSchema"))
 	var ischema *jsonschema.Resolved
 	if inputSchema != nil {
 		r, err := inputSchema.Resolve(nil)
@@ -80,6 +82,7 @@ func newDynamicNodeWithResolvedSchemas[IN, OUT any](
 	inputSchema, outputSchema *jsonschema.Resolved,
 	cfg NodeConfig,
 ) *dynamicNode[IN, OUT] {
+	defer debugExit(debugEnter("newDynamicNodeWithResolvedSchemas"))
 	return &dynamicNode[IN, OUT]{
 		BaseNode:     NewBaseNodeWithSchemas(name, "", cfg, inputSchema, outputSchema),
 		fn:           fn,
@@ -89,6 +92,7 @@ func newDynamicNodeWithResolvedSchemas[IN, OUT any](
 }
 
 func applyDynamicDefaults(cfg NodeConfig) NodeConfig {
+	defer debugExit(debugEnter("applyDynamicDefaults"))
 	if cfg.RerunOnResume == nil {
 		t := true
 		cfg.RerunOnResume = &t
@@ -97,7 +101,9 @@ func applyDynamicDefaults(cfg NodeConfig) NodeConfig {
 }
 
 func (n *dynamicNode[IN, OUT]) Run(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("dynamicNode.Run"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("dynamicNode.Run.iter"))
 		parentNC, ok := ctx.(NodeContext)
 		if !ok {
 			yield(nil, fmt.Errorf("dynamic node %q: scheduler did not supply a NodeContext", n.Name()))
@@ -138,6 +144,7 @@ func (n *dynamicNode[IN, OUT]) Run(ctx agent.InvocationContext, input any) iter.
 // roundtrip as a fallback (mirrors FunctionNode for tool-node →
 // dynamic-node edges where the upstream emits map[string]any).
 func (n *dynamicNode[IN, OUT]) coerceInput(input any) (IN, error) {
+	defer debugExit(debugEnter("dynamicNode.coerceInput"))
 	var zero IN
 	if input == nil {
 		return zero, nil
@@ -155,6 +162,7 @@ func (n *dynamicNode[IN, OUT]) coerceInput(input any) (IN, error) {
 // composePath returns this dynamic node's own composite path. Top-level
 // activations get the bare Name(); nested dynamic nodes append.
 func (n *dynamicNode[IN, OUT]) composePath(parent NodeContext) string {
+	defer debugExit(debugEnter("dynamicNode.composePath"))
 	if p := parent.Path(); p != "" {
 		return p + "/" + n.Name()
 	}
@@ -169,7 +177,9 @@ func (n *dynamicNode[IN, OUT]) composePath(parent NodeContext) string {
 // consumer triggers this, but the contract must not depend on it),
 // return context.Canceled as a stand-in.
 func makeEmit(yield func(*session.Event, error) bool, parentCtx NodeContext) func(*session.Event) error {
+	defer debugExit(debugEnter("makeEmit"))
 	return func(ev *session.Event) error {
+		defer debugExit(debugEnter("makeEmit.emit"))
 		if err := parentCtx.Err(); err != nil {
 			return err
 		}

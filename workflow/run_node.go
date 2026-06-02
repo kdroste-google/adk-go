@@ -35,7 +35,11 @@ type runNodeOptions struct {
 // Mirrors adk-python's run_id kwarg
 // (https://adk.dev/graphs/dynamic/#custom-execution-ids).
 func WithRunID(id string) RunNodeOption {
-	return func(o *runNodeOptions) { o.customRunID = id }
+	defer debugExit(debugEnter("WithRunID"))
+	return func(o *runNodeOptions) {
+		defer debugExit(debugEnter("WithRunID.apply"))
+		o.customRunID = id
+	}
 }
 
 // WithUseSubBranch derives a per-child sub-branch of the form
@@ -51,7 +55,11 @@ func WithRunID(id string) RunNodeOption {
 // Combinable with WithOverrideBranch: the override sets the base,
 // and the sub-branch segment is appended to it.
 func WithUseSubBranch() RunNodeOption {
-	return func(o *runNodeOptions) { o.useSubBranch = true }
+	defer debugExit(debugEnter("WithUseSubBranch"))
+	return func(o *runNodeOptions) {
+		defer debugExit(debugEnter("WithUseSubBranch.apply"))
+		o.useSubBranch = true
+	}
 }
 
 // WithOverrideBranch replaces the inherited branch verbatim,
@@ -66,7 +74,11 @@ func WithUseSubBranch() RunNodeOption {
 // WithUseSubBranch() alone, which derives a fresh sub-branch off
 // root.
 func WithOverrideBranch(branch string) RunNodeOption {
-	return func(o *runNodeOptions) { o.overrideBranch = branch }
+	defer debugExit(debugEnter("WithOverrideBranch"))
+	return func(o *runNodeOptions) {
+		defer debugExit(debugEnter("WithOverrideBranch.apply"))
+		o.overrideBranch = branch
+	}
 }
 
 // RunNode schedules child as a sub-node of the currently-executing
@@ -80,6 +92,7 @@ func WithOverrideBranch(branch string) RunNodeOption {
 //   - ErrInvalidRunNodeContext, ErrInvalidRunID: misuse.
 //   - ctx.Err(): parent cancellation.
 func RunNode[OUT any](ctx NodeContext, child Node, input any, opts ...RunNodeOption) (OUT, error) {
+	defer debugExit(debugEnter("RunNode"))
 	var zero OUT
 
 	nc, ok := ctx.(*nodeContext)

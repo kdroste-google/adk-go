@@ -40,6 +40,7 @@ import (
 // stable run id (auto-counter or WithRunID for dynamic; index+1 for
 // ParallelWorker; "<successor>@1" for static fan-out).
 func deriveSubBranch(parent, segment string) string {
+	defer debugExit(debugEnter("deriveSubBranch"))
 	if segment == "" {
 		return parent
 	}
@@ -53,6 +54,7 @@ func deriveSubBranch(parent, segment string) string {
 // Implemented as a small adapter that overrides only Branch() and
 // delegates the rest of the interface to the embedded ctx.
 func withBranch(ctx agent.InvocationContext, branch string) agent.InvocationContext {
+	defer debugExit(debugEnter("withBranch"))
 	if ctx.Branch() == branch {
 		return ctx
 	}
@@ -72,12 +74,16 @@ type branchOverride struct {
 	branch string
 }
 
-func (b *branchOverride) Branch() string { return b.branch }
+func (b *branchOverride) Branch() string {
+	defer debugExit(debugEnter("branchOverride.Branch"))
+	return b.branch
+}
 
 // WithContext returns a branchOverride wrapping the inner
 // InvocationContext's WithContext result so the branch override is
 // preserved through context-cancellation wrapping.
 func (b *branchOverride) WithContext(ctx context.Context) agent.InvocationContext {
+	defer debugExit(debugEnter("branchOverride.WithContext"))
 	return &branchOverride{
 		InvocationContext: b.InvocationContext.WithContext(ctx),
 		branch:            b.branch,
@@ -96,6 +102,7 @@ func (b *branchOverride) WithContext(ctx context.Context) agent.InvocationContex
 // Note: overrideBranch="" is treated as "no override"; see
 // WithOverrideBranch godoc.
 func deriveChildBranch(parentBranch, name, runID string, useSubBranch bool, overrideBranch string) string {
+	defer debugExit(debugEnter("deriveChildBranch"))
 	base := parentBranch
 	if overrideBranch != "" {
 		base = overrideBranch
@@ -120,6 +127,7 @@ func deriveChildBranch(parentBranch, name, runID string, useSubBranch bool, over
 // Note that segment-aware comparison is intentional: branches "a"
 // and "ab" share no prefix (zero common segments), not "a"-as-string.
 func commonBranchPrefix(branches []string) string {
+	defer debugExit(debugEnter("commonBranchPrefix"))
 	if len(branches) == 0 {
 		return ""
 	}

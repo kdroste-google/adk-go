@@ -55,6 +55,7 @@ type NodeRunError struct {
 
 // Error formats as "workflow: dynamic child <path>: <cause>".
 func (e *NodeRunError) Error() string {
+	defer debugExit(debugEnter("NodeRunError.Error"))
 	if e == nil {
 		return "<nil>"
 	}
@@ -69,6 +70,7 @@ func (e *NodeRunError) Error() string {
 }
 
 func (e *NodeRunError) Unwrap() error {
+	defer debugExit(debugEnter("NodeRunError.Unwrap"))
 	if e == nil {
 		return nil
 	}

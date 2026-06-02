@@ -40,6 +40,7 @@ type runnableTool interface {
 // newToolNodeWithSchemasTyped creates a new node wrapping a tool with explicitly provided schemas.
 // If a schema is nil, it will be inferred from the corresponding generic type Input or Output.
 func newToolNodeWithSchemasTyped[Input, Output any](t tool.Tool, inputSchema, outputSchema *jsonschema.Schema, cfg NodeConfig) (*ToolNode, error) {
+	defer debugExit(debugEnter("newToolNodeWithSchemasTyped"))
 	if t == nil {
 		return nil, fmt.Errorf("tool cannot be nil")
 	}
@@ -71,22 +72,26 @@ func newToolNodeWithSchemasTyped[Input, Output any](t tool.Tool, inputSchema, ou
 // NewToolNodeWithSchemas is a convenience wrapper for NewToolNodeWithSchemasTyped[any, any].
 // It uses explicitly provided schemas for both input and output.
 func NewToolNodeWithSchemas(t tool.Tool, inputSchema, outputSchema *jsonschema.Schema, cfg NodeConfig) (*ToolNode, error) {
+	defer debugExit(debugEnter("NewToolNodeWithSchemas"))
 	return newToolNodeWithSchemasTyped[any, any](t, inputSchema, outputSchema, cfg)
 }
 
 // NewToolNodeTyped creates a new node wrapping a tool using generics to
 // automatically infer input and output schemas from the provided types.
 func NewToolNodeTyped[Input, Output any](t tool.Tool, cfg NodeConfig) (*ToolNode, error) {
+	defer debugExit(debugEnter("NewToolNodeTyped"))
 	return newToolNodeWithSchemasTyped[Input, Output](t, nil, nil, cfg)
 }
 
 // NewToolNode creates a new node wrapping a tool. Input and output schemas
 // are inferred as 'any'.
 func NewToolNode(t tool.Tool, cfg NodeConfig) (*ToolNode, error) {
+	defer debugExit(debugEnter("NewToolNode"))
 	return NewToolNodeTyped[any, any](t, cfg)
 }
 
 func (n *ToolNode) runTool(toolCtx tool.Context, input any) (any, error) {
+	defer debugExit(debugEnter("ToolNode.runTool"))
 	runnable := n.tool.(runnableTool)
 	toolInput, err := n.ValidateInput(input)
 	if err != nil {
@@ -119,7 +124,9 @@ func (n *ToolNode) runTool(toolCtx tool.Context, input any) (any, error) {
 
 // Run implements the Node interface and executes the tool.
 func (n *ToolNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("ToolNode.Run"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("ToolNode.Run.iter"))
 		eventActions := &session.EventActions{StateDelta: make(map[string]any), ArtifactDelta: make(map[string]int64)}
 		toolCtx := agent.NewToolContext(ctx, uuid.NewString(), eventActions, nil)
 
@@ -146,6 +153,7 @@ func (n *ToolNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*sessio
 
 // resolvedSchema is a helper to infer schema from type T.
 func resolvedSchema[T any](override *jsonschema.Schema) (*jsonschema.Resolved, error) {
+	defer debugExit(debugEnter("resolvedSchema"))
 	if override != nil {
 		return override.Resolve(nil)
 	}

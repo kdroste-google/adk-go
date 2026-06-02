@@ -67,6 +67,7 @@ const WorkflowInputFunctionCallName = "adk_request_input"
 //	    }
 //	}
 func NewRequestInputEvent(ctx agent.InvocationContext, req session.RequestInput) *session.Event {
+	defer debugExit(debugEnter("NewRequestInputEvent"))
 	if req.InterruptID == "" {
 		req.InterruptID = uuid.NewString()
 	}

@@ -37,13 +37,16 @@ type JoinNode struct {
 
 // NewJoinNode returns a JoinNode with the given name.
 func NewJoinNode(name string) *JoinNode {
+	defer debugExit(debugEnter("NewJoinNode"))
 	return &JoinNode{BaseNode: NewBaseNode(name, "", NodeConfig{})}
 }
 
 // Run satisfies the Node interface. See JoinNode for the
 // aggregation contract.
 func (n *JoinNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("JoinNode.Run"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("JoinNode.Run.iter"))
 		event := session.NewEvent(ctx.InvocationID())
 		event.Output = input
 		yield(event, nil)

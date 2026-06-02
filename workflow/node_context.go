@@ -72,6 +72,7 @@ var _ NodeContext = (*nodeContext)(nil)
 
 // newNodeContext wraps parent for a top-level (static) activation.
 func newNodeContext(parent agent.InvocationContext, resumeInputs map[string]any) *nodeContext {
+	defer debugExit(debugEnter("newNodeContext"))
 	return &nodeContext{
 		InvocationContext: parent,
 		resumeInputs:      resumeInputs,
@@ -86,6 +87,7 @@ func newNodeContext(parent agent.InvocationContext, resumeInputs map[string]any)
 // sub-scheduler child. Child inherits resumeInputs so HITL responses
 // reach dynamic children.
 func newDynamicNodeContext(parent NodeContext, path, runID string, sub *dynamicSubScheduler) *nodeContext {
+	defer debugExit(debugEnter("newDynamicNodeContext"))
 	var inherited map[string]any
 	if p, ok := parent.(*nodeContext); ok {
 		inherited = p.resumeInputs
@@ -100,6 +102,7 @@ func newDynamicNodeContext(parent NodeContext, path, runID string, sub *dynamicS
 }
 
 func (c *nodeContext) ResumedInput(interruptID string) (any, bool) {
+	defer debugExit(debugEnter("nodeContext.ResumedInput"))
 	if c.resumeInputs == nil {
 		return nil, false
 	}
@@ -107,10 +110,18 @@ func (c *nodeContext) ResumedInput(interruptID string) (any, bool) {
 	return v, ok
 }
 
-func (c *nodeContext) Path() string  { return c.path }
-func (c *nodeContext) RunID() string { return c.runID }
+func (c *nodeContext) Path() string {
+	defer debugExit(debugEnter("nodeContext.Path"))
+	return c.path
+}
+
+func (c *nodeContext) RunID() string {
+	defer debugExit(debugEnter("nodeContext.RunID"))
+	return c.runID
+}
 
 func (c *nodeContext) WithBranch(branch string) NodeContext {
+	defer debugExit(debugEnter("nodeContext.WithBranch"))
 	// Reuse the package-level withBranch helper to swap Branch on
 	// the underlying InvocationContext; preserve the NodeContext
 	// envelope (path, runID, resumeInputs, subScheduler) unchanged.
@@ -130,6 +141,7 @@ func (c *nodeContext) WithBranch(branch string) NodeContext {
 // and silently drop the resumeInputs map, breaking re-entry resume
 // activations and any other workflow-specific accessors.
 func (c *nodeContext) WithContext(ctx context.Context) agent.InvocationContext {
+	defer debugExit(debugEnter("nodeContext.WithContext"))
 	return &nodeContext{
 		c.InvocationContext.WithContext(ctx),
 		c.resumeInputs,

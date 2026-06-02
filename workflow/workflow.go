@@ -53,6 +53,7 @@ type Route interface {
 }
 
 func matchRoute(routeValue string, event *session.Event) bool {
+	defer debugExit(debugEnter("matchRoute"))
 	for _, v := range event.Routes {
 		if v == routeValue {
 			return true
@@ -65,6 +66,7 @@ func matchRoute(routeValue string, event *session.Event) bool {
 type StringRoute string
 
 func (r StringRoute) Matches(event *session.Event) bool {
+	defer debugExit(debugEnter("StringRoute.Matches"))
 	return matchRoute(string(r), event)
 }
 
@@ -72,6 +74,7 @@ func (r StringRoute) Matches(event *session.Event) bool {
 type IntRoute int
 
 func (r IntRoute) Matches(event *session.Event) bool {
+	defer debugExit(debugEnter("IntRoute.Matches"))
 	return matchRoute(fmt.Sprint(r), event)
 }
 
@@ -79,6 +82,7 @@ func (r IntRoute) Matches(event *session.Event) bool {
 type BoolRoute bool
 
 func (r BoolRoute) Matches(event *session.Event) bool {
+	defer debugExit(debugEnter("BoolRoute.Matches"))
 	return matchRoute(fmt.Sprint(r), event)
 }
 
@@ -86,6 +90,7 @@ func (r BoolRoute) Matches(event *session.Event) bool {
 type MultiRoute[T comparable] []T
 
 func (r MultiRoute[T]) Matches(event *session.Event) bool {
+	defer debugExit(debugEnter("MultiRoute.Matches"))
 	for _, route := range r {
 		if matchRoute(fmt.Sprint(route), event) {
 			return true
@@ -100,6 +105,7 @@ var Default = &defaultRoute{}
 type defaultRoute struct{}
 
 func (r *defaultRoute) Matches(event *session.Event) bool {
+	defer debugExit(debugEnter("defaultRoute.Matches"))
 	return false
 }
 
@@ -115,17 +121,41 @@ var Start Node = &startNode{}
 
 type startNode struct{}
 
-func (s *startNode) Name() string                       { return "START" }
-func (s *startNode) Description() string                { return "Start node" }
-func (s *startNode) Config() NodeConfig                 { return NodeConfig{} }
-func (s *startNode) InputSchema() *jsonschema.Resolved  { return nil }
-func (s *startNode) OutputSchema() *jsonschema.Resolved { return nil }
+func (s *startNode) Name() string {
+	defer debugExit(debugEnter("startNode.Name"))
+	return "START"
+}
+
+func (s *startNode) Description() string {
+	defer debugExit(debugEnter("startNode.Description"))
+	return "Start node"
+}
+
+func (s *startNode) Config() NodeConfig {
+	defer debugExit(debugEnter("startNode.Config"))
+	return NodeConfig{}
+}
+
+func (s *startNode) InputSchema() *jsonschema.Resolved {
+	defer debugExit(debugEnter("startNode.InputSchema"))
+	return nil
+}
+
+func (s *startNode) OutputSchema() *jsonschema.Resolved {
+	defer debugExit(debugEnter("startNode.OutputSchema"))
+	return nil
+}
+
 func (s *startNode) ValidateInput(input any) (any, error) {
+	defer debugExit(debugEnter("startNode.ValidateInput"))
 	return input, nil
 }
 
 func (s *startNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
-	return func(yield func(*session.Event, error) bool) {}
+	defer debugExit(debugEnter("startNode.Run"))
+	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("startNode.Run.iter"))
+	}
 }
 
 // Workflow manages the workflow graph execution.
@@ -162,7 +192,9 @@ type workflowOptions struct {
 // from inside a DynamicNode body — they are awaited inline by the
 // parent and gating them would deadlock.
 func WithMaxConcurrency(n int) Option {
+	defer debugExit(debugEnter("WithMaxConcurrency"))
 	return func(o *workflowOptions) {
+		defer debugExit(debugEnter("WithMaxConcurrency.apply"))
 		if n < 0 {
 			n = 0
 		}
@@ -187,6 +219,7 @@ func WithMaxConcurrency(n int) Option {
 // Optional Option values configure engine behaviour
 // (concurrency cap, etc.); see WithMaxConcurrency.
 func New(name string, edges []Edge, opts ...Option) (*Workflow, error) {
+	defer debugExit(debugEnter("New"))
 	if err := validateNodes(edges); err != nil {
 		return nil, err
 	}
@@ -219,6 +252,7 @@ func New(name string, edges []Edge, opts ...Option) (*Workflow, error) {
 // by New. Empty when the workflow is anonymous (does not persist
 // its RunState).
 func (w *Workflow) Name() string {
+	defer debugExit(debugEnter("Workflow.Name"))
 	return w.name
 }
 
@@ -235,13 +269,16 @@ func (w *Workflow) Name() string {
 // when nodes complete. The consumer is the only mutator of the
 // per-node lifecycle map and of session state.
 func (w *Workflow) Run(ctx agent.InvocationContext) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("Workflow.Run"))
 	return w.RunNode(ctx, userInput(ctx))
 }
 
 // RunNode drives the workflow with the given input.
 // This is used by WorkflowNode to run nested workflows.
 func (w *Workflow) RunNode(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("Workflow.RunNode"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("Workflow.RunNode.iter"))
 		s := newScheduler(ctx, w.graph, w.maxConcurrency)
 		// Seed: schedule START with the supplied input.
 		startState := s.state.EnsureNode(Start.Name())
@@ -275,6 +312,7 @@ func yieldRunStateEvent(
 	state *RunState,
 	yield func(*session.Event, error) bool,
 ) {
+	defer debugExit(debugEnter("yieldRunStateEvent"))
 	ev, err := NewRunStateEvent(ctx.InvocationID(), workflowName, state)
 	if err != nil {
 		yield(nil, err)
@@ -290,6 +328,7 @@ func yieldRunStateEvent(
 // InvocationContext's UserContent. Concatenates all text parts;
 // returns nil for an empty UserContent.
 func userInput(ctx agent.InvocationContext) any {
+	defer debugExit(debugEnter("userInput"))
 	uc := ctx.UserContent()
 	if uc == nil {
 		return nil

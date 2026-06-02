@@ -27,6 +27,7 @@ type graph struct {
 // returned graph references the input edges by value; mutating the
 // input edge slice afterwards does not affect the graph.
 func newGraph(edges []Edge) *graph {
+	defer debugExit(debugEnter("newGraph"))
 	succ := make(map[Node][]Edge)
 	pred := make(map[Node][]Edge)
 	for _, edge := range edges {
@@ -42,6 +43,7 @@ func newGraph(edges []Edge) *graph {
 // returned slice is owned by the graph and must not be mutated by
 // callers.
 func (g *graph) successorsOf(n Node) []Edge {
+	defer debugExit(debugEnter("graph.successorsOf"))
 	return g.successors[n]
 }
 
@@ -50,5 +52,6 @@ func (g *graph) successorsOf(n Node) []Edge {
 // not in the graph at all). The returned slice is owned by the
 // graph and must not be mutated by callers.
 func (g *graph) predecessorsOf(n Node) []Edge {
+	defer debugExit(debugEnter("graph.predecessorsOf"))
 	return g.predecessors[n]
 }

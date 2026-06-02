@@ -31,6 +31,7 @@ type WorkflowNode struct {
 // NewWorkflowNode creates a new node that runs a nested workflow.
 // It uses the same arguments as New to construct the inner workflow.
 func NewWorkflowNode(name string, edges []Edge) (*WorkflowNode, error) {
+	defer debugExit(debugEnter("NewWorkflowNode"))
 	wf, err := New(name, edges)
 	if err != nil {
 		return nil, err
@@ -46,7 +47,9 @@ func NewWorkflowNode(name string, edges []Edge) (*WorkflowNode, error) {
 // output is yielded to the parent scheduler, preventing ErrMultipleOutputs
 // if intermediate steps also produced outputs.
 func (n *WorkflowNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("WorkflowNode.Run"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("WorkflowNode.Run.iter"))
 		var lastOutput any
 		var pendingErr error
 

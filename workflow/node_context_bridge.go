@@ -28,6 +28,7 @@ type nodeContextKey struct{}
 // descendant context.Context. The scheduler calls this on every
 // per-node activation.
 func WithNodeContext(parent context.Context, nc NodeContext) context.Context {
+	defer debugExit(debugEnter("WithNodeContext"))
 	if parent == nil || nc == nil {
 		return parent
 	}
@@ -37,6 +38,7 @@ func WithNodeContext(parent context.Context, nc NodeContext) context.Context {
 // NodeContextFromGoContext returns the NodeContext stashed by
 // WithNodeContext, or (nil, false) if none is present on ctx.
 func NodeContextFromGoContext(ctx context.Context) (NodeContext, bool) {
+	defer debugExit(debugEnter("NodeContextFromGoContext"))
 	if ctx == nil {
 		return nil, false
 	}

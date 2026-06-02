@@ -37,6 +37,7 @@ var defaultRetryConfig = RetryConfig{
 //	rc.MaxAttempts = 10
 //	cfg := workflow.NodeConfig{RetryConfig: rc}
 func DefaultRetryConfig() *RetryConfig {
+	defer debugExit(debugEnter("DefaultRetryConfig"))
 	cfg := defaultRetryConfig
 	return &cfg
 }

@@ -144,6 +144,7 @@ type RunState struct {
 // NewRunState returns an empty state with the Nodes map
 // initialised so callers can write to it without a nil check.
 func NewRunState() *RunState {
+	defer debugExit(debugEnter("NewRunState"))
 	return &RunState{Nodes: map[string]*NodeState{}}
 }
 
@@ -151,6 +152,7 @@ func NewRunState() *RunState {
 // creating an inactive entry if none exists. The returned pointer
 // is owned by the state and may be mutated in place.
 func (s *RunState) EnsureNode(name string) *NodeState {
+	defer debugExit(debugEnter("RunState.EnsureNode"))
 	if s.Nodes == nil {
 		s.Nodes = map[string]*NodeState{}
 	}

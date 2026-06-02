@@ -141,6 +141,7 @@ type nodeRun struct {
 // calls are no-ops, preserving the first failure for handleCompletion
 // to surface.
 func (nr *nodeRun) recordErr(err error) {
+	defer debugExit(debugEnter("nodeRun.recordErr"))
 	if nr.err == nil {
 		nr.err = err
 	}
@@ -149,6 +150,7 @@ func (nr *nodeRun) recordErr(err error) {
 // setRoutingEvent stores ev as the node's single routing event. A
 // second call records ErrMultipleRoutingEvents instead of overwriting.
 func (nr *nodeRun) setRoutingEvent(ev *session.Event, nodeName string) {
+	defer debugExit(debugEnter("nodeRun.setRoutingEvent"))
 	if nr.routingEvent != nil {
 		nr.recordErr(fmt.Errorf("%w: node %q", ErrMultipleRoutingEvents, nodeName))
 		return
@@ -163,6 +165,7 @@ func (nr *nodeRun) setRoutingEvent(ev *session.Event, nodeName string) {
 // NodeFailed (the waiting branch is gated on nr.err == nil so a
 // node that requested twice does not silently park).
 func (nr *nodeRun) setInputRequest(req *session.RequestInput, nodeName string) {
+	defer debugExit(debugEnter("nodeRun.setInputRequest"))
 	if nr.inputRequest != nil {
 		nr.recordErr(fmt.Errorf("%w: node %q", ErrMultipleInputRequests, nodeName))
 		return
@@ -173,6 +176,7 @@ func (nr *nodeRun) setInputRequest(req *session.RequestInput, nodeName string) {
 // setOutput stores out as the node's single output value. A second
 // call records ErrMultipleOutputs instead of overwriting.
 func (nr *nodeRun) setOutput(out any, nodeName string) {
+	defer debugExit(debugEnter("nodeRun.setOutput"))
 	if nr.hasOutput {
 		nr.recordErr(fmt.Errorf("%w: node %q", ErrMultipleOutputs, nodeName))
 		return
@@ -194,7 +198,9 @@ type eventItem struct {
 	ev       *session.Event
 }
 
-func (eventItem) isQueueItem() {}
+func (eventItem) isQueueItem() {
+	defer debugExit(debugEnter("eventItem.isQueueItem"))
+}
 
 // completionItem signals that a node-runner goroutine has finished.
 // err is nil on success; non-nil errors are classified by the
@@ -205,7 +211,9 @@ type completionItem struct {
 	err      error
 }
 
-func (completionItem) isQueueItem() {}
+func (completionItem) isQueueItem() {
+	defer debugExit(debugEnter("completionItem.isQueueItem"))
+}
 
 // retryItem signals that a node should be retried after a delay.
 type retryItem struct {
@@ -215,7 +223,9 @@ type retryItem struct {
 	branch      string
 }
 
-func (retryItem) isQueueItem() {}
+func (retryItem) isQueueItem() {
+	defer debugExit(debugEnter("retryItem.isQueueItem"))
+}
 
 // newScheduler returns an initialised scheduler ready for the
 // consumer to drive. The caller is responsible for seeding the
@@ -227,6 +237,7 @@ func (retryItem) isQueueItem() {}
 // tryDispatchPending as in-flight nodes complete. 0 disables the
 // cap (unlimited).
 func newScheduler(parent agent.InvocationContext, g *graph, maxConcurrency int) *scheduler {
+	defer debugExit(debugEnter("newScheduler"))
 	return &scheduler{
 		state:          NewRunState(),
 		graph:          g,
@@ -244,6 +255,7 @@ func newScheduler(parent agent.InvocationContext, g *graph, maxConcurrency int) 
 // lookup. Lets handleCompletion resolve a completion's node name to
 // its instance in O(1) instead of scanning the full table.
 func buildNodesByName(g *graph) map[string]Node {
+	defer debugExit(debugEnter("buildNodesByName"))
 	nodesByName := map[string]Node{}
 	for n, edges := range g.successors {
 		nodesByName[n.Name()] = n
@@ -272,6 +284,7 @@ func buildNodesByName(g *graph) map[string]Node {
 //
 // scheduleNode runs only on the consumer goroutine.
 func (s *scheduler) scheduleNode(n Node, input any, triggeredBy, branch string) {
+	defer debugExit(debugEnter("scheduler.scheduleNode"))
 	s.scheduleResumedNode(n, input, triggeredBy, branch, nil)
 }
 
@@ -279,6 +292,7 @@ func (s *scheduler) scheduleNode(n Node, input any, triggeredBy, branch string) 
 // activations has reached the configured cap. Always false when
 // maxConcurrency is 0 (unlimited).
 func (s *scheduler) atConcurrencyLimit() bool {
+	defer debugExit(debugEnter("scheduler.atConcurrencyLimit"))
 	return s.maxConcurrency > 0 && len(s.runsByName) >= s.maxConcurrency
 }
 
@@ -289,6 +303,7 @@ func (s *scheduler) atConcurrencyLimit() bool {
 // Called after every completion (and after retry-timer expiry)
 // to make room-becoming-available immediately observable.
 func (s *scheduler) tryDispatchPending() {
+	defer debugExit(debugEnter("scheduler.tryDispatchPending"))
 	for len(s.pendingQueue) > 0 && !s.atConcurrencyLimit() {
 		next := s.pendingQueue[0]
 		s.pendingQueue = s.pendingQueue[1:]
@@ -310,6 +325,7 @@ func (s *scheduler) tryDispatchPending() {
 //
 // scheduleResumedNode runs only on the consumer goroutine.
 func (s *scheduler) scheduleResumedNode(n Node, input any, triggeredBy, branch string, resumeInputs map[string]any) {
+	defer debugExit(debugEnter("scheduler.scheduleResumedNode"))
 	if s.atConcurrencyLimit() {
 		name := n.Name()
 		ns := s.state.EnsureNode(name)
@@ -335,6 +351,7 @@ func (s *scheduler) scheduleResumedNode(n Node, input any, triggeredBy, branch s
 // concurrency-cap check is done by scheduleResumedNode (the
 // public entry point) before reaching here.
 func (s *scheduler) startNode(n Node, input any, triggeredBy, branch string, resumeInputs map[string]any) {
+	defer debugExit(debugEnter("scheduler.startNode"))
 	name := n.Name()
 
 	// Per-node context: WithTimeout when Config().Timeout > 0,
@@ -390,8 +407,11 @@ func (s *scheduler) startNode(n Node, input any, triggeredBy, branch string, res
 // branch is preserved across attempts so retries do not silently
 // move the node to a different branch.
 func (s *scheduler) scheduleRetry(n Node, input any, triggeredBy, branch string, delay time.Duration) {
+	defer debugExit(debugEnter("scheduler.scheduleRetry"))
 	timer := time.AfterFunc(delay, func() {
+		defer debugExit(debugEnter("scheduler.scheduleRetry.timer"))
 		go func() {
+			defer debugExit(debugEnter("scheduler.scheduleRetry.timer.go"))
 			select {
 			case s.eventQueue <- retryItem{node: n, input: input, triggeredBy: triggeredBy, branch: branch}:
 			case <-s.parentCtx.Done():
@@ -420,6 +440,7 @@ func runNode(
 	ctx agent.InvocationContext,
 	input any,
 ) {
+	defer debugExit(debugEnter("runNode"))
 	defer wg.Done()
 
 	span, ctx := startNodeSpan(ctx, n)
@@ -430,6 +451,7 @@ func runNode(
 	// all funnel through the same send path.
 	completion := completionItem{nodeName: name}
 	defer func() {
+		defer debugExit(debugEnter("runNode.recover"))
 		if r := recover(); r != nil {
 			completion.err = fmt.Errorf("node %q panicked: %v", name, r)
 		}
@@ -473,6 +495,7 @@ func runNode(
 //
 // cancelAll runs only on the consumer goroutine.
 func (s *scheduler) cancelAll() {
+	defer debugExit(debugEnter("scheduler.cancelAll"))
 	for _, cancel := range s.runCancels {
 		cancel()
 	}
@@ -497,6 +520,7 @@ func (s *scheduler) cancelAll() {
 // Workflow.Run); it is the only mutator of state.Nodes and the
 // node-side accumulators.
 func (s *scheduler) run(yield func(*session.Event, error) bool) {
+	defer debugExit(debugEnter("scheduler.run"))
 	var pendingErr error // first non-nil node error; surfaced after drain
 	draining := false    // true once cancelAll has run; remaining queue items are drained without yielding or scheduling new successors
 
@@ -566,6 +590,7 @@ func (s *scheduler) run(yield func(*session.Event, error) bool) {
 // matches InterruptID against the parent's NodeState.PendingRequest,
 // so the parent must transition to NodeWaiting on a descendant pause.
 func (s *scheduler) handleEvent(it eventItem) {
+	defer debugExit(debugEnter("scheduler.handleEvent"))
 	nr := s.runsByName[it.nodeName]
 	if nr == nil {
 		// Defensive: completion already processed for this node;
@@ -626,6 +651,7 @@ func (s *scheduler) handleEvent(it eventItem) {
 // multiple-input-request) does not silently park in NodeWaiting:
 // failures take precedence and surface as NodeFailed.
 func (s *scheduler) handleCompletion(it completionItem, scheduleSuccessors bool) error {
+	defer debugExit(debugEnter("scheduler.handleCompletion"))
 	ns := s.state.EnsureNode(it.nodeName)
 	nr := s.runsByName[it.nodeName]
 	// For retryable nodes still delete them from run variables. If the node is retried,
@@ -761,6 +787,7 @@ type successor struct {
 //     appendSuccessor as the common dot-prefix of the branches of
 //     all completed predecessors — see aggregatePredecessorBranches.
 func findSuccessors(g *graph, state *RunState, currentNode Node, input any, event *session.Event, parentBranch string) []successor {
+	defer debugExit(debugEnter("findSuccessors"))
 	succs := g.successorsOf(currentNode)
 	if len(succs) == 0 {
 		return nil
@@ -823,6 +850,7 @@ func findSuccessors(g *graph, state *RunState, currentNode Node, input any, even
 // JoinNode is silently skipped — a later predecessor completion
 // re-evaluates the barrier.
 func appendSuccessor(out []successor, g *graph, state *RunState, target Node, input any, triggeredBy, parentBranch string) []successor {
+	defer debugExit(debugEnter("appendSuccessor"))
 	if _, isJoin := target.(*JoinNode); !isJoin {
 		return append(out, successor{
 			node:        target,
@@ -850,6 +878,7 @@ func appendSuccessor(out []successor, g *graph, state *RunState, target Node, in
 // predecessor that completed without an output contributes a nil
 // value (same as the absence the predecessor itself emitted).
 func aggregatePredecessorOutputs(g *graph, state *RunState, target Node) (map[string]any, bool) {
+	defer debugExit(debugEnter("aggregatePredecessorOutputs"))
 	predEdges := g.predecessorsOf(target)
 	aggregated := make(map[string]any, len(predEdges))
 	for _, edge := range predEdges {
@@ -874,6 +903,7 @@ func aggregatePredecessorOutputs(g *graph, state *RunState, target Node) (map[st
 // returning ok); a missing entry contributes "" which conservatively
 // short-circuits the common-prefix to root.
 func aggregatePredecessorBranches(g *graph, state *RunState, target Node) []string {
+	defer debugExit(debugEnter("aggregatePredecessorBranches"))
 	predEdges := g.predecessorsOf(target)
 	branches := make([]string, 0, len(predEdges))
 	for _, edge := range predEdges {
@@ -888,6 +918,7 @@ func aggregatePredecessorBranches(g *graph, state *RunState, target Node) []stri
 }
 
 func startNodeSpan(ctx agent.InvocationContext, n Node) (trace.Span, agent.InvocationContext) {
+	defer debugExit(debugEnter("startNodeSpan"))
 	if n == Start {
 		// Don't create span for the Start node.
 		return noop.Span{}, ctx

@@ -41,6 +41,7 @@ type dynamicSubScheduler struct {
 }
 
 func newDynamicSubScheduler(parent NodeContext, parentPath string, emitUp func(*session.Event) error) *dynamicSubScheduler {
+	defer debugExit(debugEnter("newDynamicSubScheduler"))
 	return &dynamicSubScheduler{
 		parentPath:      parentPath,
 		parentCtx:       parent,
@@ -60,6 +61,7 @@ func newDynamicSubScheduler(parent NodeContext, parentPath string, emitUp func(*
 // Session, invocation metadata, and cancellation come from
 // s.parentCtx. opts carries the resolved RunNodeOption arguments.
 func (s *dynamicSubScheduler) runNode(child Node, input any, opts runNodeOptions) (any, error) {
+	defer debugExit(debugEnter("dynamicSubScheduler.runNode"))
 	name := child.Name()
 	runID, err := s.resolveRunID(name, opts.customRunID)
 	if err != nil {
@@ -136,6 +138,7 @@ func (s *dynamicSubScheduler) runNode(child Node, input any, opts runNodeOptions
 }
 
 func (s *dynamicSubScheduler) lookupCachedOutput(childPath string) (any, bool) {
+	defer debugExit(debugEnter("dynamicSubScheduler.lookupCachedOutput"))
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	out, ok := s.resultByPath[childPath]
@@ -143,6 +146,7 @@ func (s *dynamicSubScheduler) lookupCachedOutput(childPath string) (any, bool) {
 }
 
 func (s *dynamicSubScheduler) storeCachedOutput(childPath string, out any) {
+	defer debugExit(debugEnter("dynamicSubScheduler.storeCachedOutput"))
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.resultByPath[childPath] = out
@@ -151,6 +155,7 @@ func (s *dynamicSubScheduler) storeCachedOutput(childPath string, out any) {
 // resolveRunID validates a user-supplied id, or returns the next
 // per-child-name counter value under lock.
 func (s *dynamicSubScheduler) resolveRunID(childName, custom string) (string, error) {
+	defer debugExit(debugEnter("dynamicSubScheduler.resolveRunID"))
 	if custom != "" {
 		if err := validateCustomRunID(custom); err != nil {
 			return "", err
@@ -167,6 +172,7 @@ func (s *dynamicSubScheduler) resolveRunID(childName, custom string) (string, er
 // with the auto-counter), and ids containing the composite-path
 // separators / and @.
 func validateCustomRunID(id string) error {
+	defer debugExit(debugEnter("validateCustomRunID"))
 	if id == "" {
 		return fmt.Errorf("%w: empty", ErrInvalidRunID)
 	}
@@ -183,6 +189,7 @@ func validateCustomRunID(id string) error {
 // emits ASCII digits, so collision is only possible with ASCII numeric
 // ids.
 func isAllDigits(s string) bool {
+	defer debugExit(debugEnter("isAllDigits"))
 	for _, r := range s {
 		if r < '0' || r > '9' {
 			return false

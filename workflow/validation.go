@@ -51,6 +51,7 @@ var ErrSubWorkflowNameCollision = errors.New("sub-workflow name collision")
 
 // validateNodes executes a set of edges validation checks.
 func validateNodes(edges []Edge) error {
+	defer debugExit(debugEnter("validateNodes"))
 	if err := validateUniqueNames(edges); err != nil {
 		return err
 	}
@@ -65,6 +66,7 @@ func validateNodes(edges []Edge) error {
 
 // validateSubWorkflowNames checks that no sub-workflow has the same name as the parent workflow.
 func validateSubWorkflowNames(workflowName string, edges []Edge) error {
+	defer debugExit(debugEnter("validateSubWorkflowNames"))
 	for _, edge := range edges {
 		if err := checkSubWorkflowName(edge.From, workflowName); err != nil {
 			return err
@@ -78,6 +80,7 @@ func validateSubWorkflowNames(workflowName string, edges []Edge) error {
 
 // checkSubWorkflowName checks if the node is a WorkflowNode and if its sub-workflow has the same name as the parent workflow.
 func checkSubWorkflowName(node Node, workflowName string) error {
+	defer debugExit(debugEnter("checkSubWorkflowName"))
 	if wfNode, ok := node.(*WorkflowNode); ok {
 		if wfNode.subWorkflow.Name() == workflowName {
 			return fmt.Errorf("%w: %q", ErrSubWorkflowNameCollision, workflowName)
@@ -90,8 +93,10 @@ func checkSubWorkflowName(node Node, workflowName string) error {
 // If duplicate node names are found, it returns an error. The equality between
 // nodes is checked by comparing the nodes directly.
 func validateUniqueNames(edges []Edge) error {
+	defer debugExit(debugEnter("validateUniqueNames"))
 	names := make(map[string]Node)
 	checkNode := func(node Node) error {
+		defer debugExit(debugEnter("validateUniqueNames.checkNode"))
 		if storedNode, ok := names[node.Name()]; ok {
 			if storedNode != node {
 				return fmt.Errorf("%w: %s", ErrDuplicateNodeName, node.Name())
@@ -114,6 +119,7 @@ func validateUniqueNames(edges []Edge) error {
 
 // validateStartNodePresent checks that there is at least one edge starting from the start node.
 func validateStartNodePresent(edges []Edge) error {
+	defer debugExit(debugEnter("validateStartNodePresent"))
 	for _, edge := range edges {
 		if edge.From == Start {
 			return nil
@@ -124,6 +130,7 @@ func validateStartNodePresent(edges []Edge) error {
 
 // validateStartNodeNoIncoming checks that no node points to the start node.
 func validateStartNodeNoIncoming(edges []Edge) error {
+	defer debugExit(debugEnter("validateStartNodeNoIncoming"))
 	for _, edge := range edges {
 		if edge.To == Start {
 			return fmt.Errorf("%w: %s", ErrNodePointsToStart, edge.From.Name())
@@ -134,6 +141,7 @@ func validateStartNodeNoIncoming(edges []Edge) error {
 
 // validateWorkflow executes a set of workflow validation checks.
 func validateWorkflow(workflow *graph) error {
+	defer debugExit(debugEnter("validateWorkflow"))
 	if err := validateUniqueEdges(workflow); err != nil {
 		return err
 	}
@@ -153,6 +161,7 @@ func validateWorkflow(workflow *graph) error {
 // Two edges with the same (From, To) are rejected regardless of Route; use
 // MultiRoute to express alternatives to the same target.
 func validateUniqueEdges(workflow *graph) error {
+	defer debugExit(debugEnter("validateUniqueEdges"))
 	for node, edges := range workflow.successors {
 		uniqueEdges := make(map[Node]struct{})
 		for _, edge := range edges {
@@ -167,6 +176,7 @@ func validateUniqueEdges(workflow *graph) error {
 
 // validateDefaultRoute checks that there are no multiple default routes for one node.
 func validateDefaultRoute(workflow *graph) error {
+	defer debugExit(debugEnter("validateDefaultRoute"))
 	for node, edges := range workflow.successors {
 		hasDefault := false
 		for _, edge := range edges {
@@ -182,6 +192,7 @@ func validateDefaultRoute(workflow *graph) error {
 
 // validateConnectivity checks that all nodes in the edge set are reachable from the start node.
 func validateConnectivity(workflow *graph) error {
+	defer debugExit(debugEnter("validateConnectivity"))
 	if len(workflow.successors) == 0 {
 		return nil
 	}
@@ -189,6 +200,7 @@ func validateConnectivity(workflow *graph) error {
 	visited := make(map[Node]bool)
 	var traverse func(n Node)
 	traverse = func(n Node) {
+		defer debugExit(debugEnter("validateConnectivity.traverse"))
 		visited[n] = true
 		for _, neighbor := range workflow.successors[n] {
 			if !visited[neighbor.To] {
@@ -228,10 +240,12 @@ func validateConnectivity(workflow *graph) error {
 // Default routes (where Route == Default) are treated as conditional edges
 // and are ignored during unconditional cycle detection.
 func validateCycles(workflow *graph) error {
+	defer debugExit(debugEnter("validateCycles"))
 	visited := make(map[Node]struct{})
 
 	var traverse func(n Node, inStack map[Node]struct{}) error
 	traverse = func(n Node, inStack map[Node]struct{}) error {
+		defer debugExit(debugEnter("validateCycles.traverse"))
 		if _, ok := inStack[n]; ok {
 			return fmt.Errorf("%w: %q", ErrUnconditionalCycle, n.Name())
 		}

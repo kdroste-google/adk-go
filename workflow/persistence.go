@@ -31,6 +31,7 @@ const runStateSessionKeyPrefix = "adk.workflow.runstate."
 // by workflow name so multiple workflows in the same session do
 // not collide.
 func RunStateSessionKey(workflowName string) string {
+	defer debugExit(debugEnter("RunStateSessionKey"))
 	return runStateSessionKeyPrefix + workflowName
 }
 
@@ -40,6 +41,7 @@ func RunStateSessionKey(workflowName string) string {
 // from "load failed". An empty workflowName disables persistence
 // and always returns (nil, nil).
 func LoadRunState(sess session.Session, workflowName string) (*RunState, error) {
+	defer debugExit(debugEnter("LoadRunState"))
 	if sess == nil || workflowName == "" {
 		return nil, nil
 	}
@@ -58,6 +60,7 @@ func LoadRunState(sess session.Session, workflowName string) (*RunState, error) 
 	// raw is JSON-encoded []byte (or its base64-string form when
 	// the session backend round-trips StateDelta through JSON).
 	decode := func(b []byte) (*RunState, error) {
+		defer debugExit(debugEnter("LoadRunState.decode"))
 		var state RunState
 		if err := json.Unmarshal(b, &state); err != nil {
 			return nil, fmt.Errorf("workflow: decode run state: %w", err)
@@ -88,6 +91,7 @@ func LoadRunState(sess session.Session, workflowName string) (*RunState, error) 
 // unconditionally and skip the yield when persistence is not
 // desired.
 func NewRunStateEvent(invocationID, workflowName string, state *RunState) (*session.Event, error) {
+	defer debugExit(debugEnter("NewRunStateEvent"))
 	if workflowName == "" || state == nil {
 		return nil, nil
 	}

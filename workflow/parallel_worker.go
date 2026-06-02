@@ -38,6 +38,7 @@ type ParallelWorker struct {
 // NewParallelWorker creates a new ParallelWorker node.
 // maxConcurrency <= 0 means no limit on concurrency.
 func NewParallelWorker(name string, wrapped Node, maxConcurrency int, cfg NodeConfig) (*ParallelWorker, error) {
+	defer debugExit(debugEnter("NewParallelWorker"))
 	if wrapped.Config().RetryConfig != nil {
 		return nil, fmt.Errorf("ParallelWorker %s: wrapped node %s cannot have RetryConfig", name, wrapped.Name())
 	}
@@ -69,7 +70,9 @@ func NewParallelWorker(name string, wrapped Node, maxConcurrency int, cfg NodeCo
 //
 // Intermediate non-output events emitted by the wrapped node are suppressed.
 func (n *ParallelWorker) Run(ctx agent.InvocationContext, input any) iter.Seq2[*session.Event, error] {
+	defer debugExit(debugEnter("ParallelWorker.Run"))
 	return func(yield func(*session.Event, error) bool) {
+		defer debugExit(debugEnter("ParallelWorker.Run.iter"))
 		cancelCtx, cancelFunc := context.WithCancel(ctx)
 		defer cancelFunc()
 		workerCtx := ctx.WithContext(cancelCtx)
@@ -167,6 +170,7 @@ type workerResult struct {
 }
 
 func (n *ParallelWorker) runWorker(ctx agent.InvocationContext, idx int, item any, sem chan struct{}, resCh chan<- workerResult, wg *sync.WaitGroup) {
+	defer debugExit(debugEnter("ParallelWorker.runWorker"))
 	defer wg.Done()
 	defer func() {
 		if sem != nil {
@@ -219,6 +223,7 @@ func (n *ParallelWorker) runWorker(ctx agent.InvocationContext, idx int, item an
 }
 
 func makeWorkerOutputEvent(outputs []any) *session.Event {
+	defer debugExit(debugEnter("makeWorkerOutputEvent"))
 	if len(outputs) == 0 {
 		return nil
 	}
@@ -232,6 +237,7 @@ func makeWorkerOutputEvent(outputs []any) *session.Event {
 }
 
 func extractOutput(ev *session.Event) (any, bool) {
+	defer debugExit(debugEnter("extractOutput"))
 	if ev == nil {
 		return nil, false
 	}

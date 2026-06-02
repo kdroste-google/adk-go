@@ -22,6 +22,7 @@ import (
 // CalculateDelay calculates the delay before the next retry attempt.
 // failedAttempts is the number of times the node has already failed.
 func CalculateDelay(cfg *RetryConfig, failedAttempts int) time.Duration {
+	defer debugExit(debugEnter("CalculateDelay"))
 	if cfg == nil || failedAttempts <= 0 {
 		return 0
 	}
@@ -51,6 +52,7 @@ func CalculateDelay(cfg *RetryConfig, failedAttempts int) time.Duration {
 // ShouldRetry decides whether a node should be retried after a failure.
 // failedAttempts is the number of times the node has already failed.
 func ShouldRetry(cfg *RetryConfig, err error, failedAttempts int) bool {
+	defer debugExit(debugEnter("ShouldRetry"))
 	if cfg == nil {
 		return false
 	}
