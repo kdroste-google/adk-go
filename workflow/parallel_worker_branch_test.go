@@ -36,7 +36,7 @@ func TestParallelWorker_PerItemSubBranch(t *testing.T) {
 		seenBranches []string
 	)
 	wrapped := NewFunctionNode(wrappedName,
-		func(ctx agent.InvocationContext, input string) (string, error) {
+		func(ctx agent.CallbackContext, input string) (string, error) {
 			mu.Lock()
 			seenBranches = append(seenBranches, ctx.Branch())
 			mu.Unlock()
@@ -88,7 +88,7 @@ func TestParallelWorker_SubBranchUnderNonRootParent(t *testing.T) {
 		seenBranches []string
 	)
 	wrapped := NewFunctionNode(wrappedName,
-		func(ctx agent.InvocationContext, input string) (string, error) {
+		func(ctx agent.CallbackContext, input string) (string, error) {
 			mu.Lock()
 			seenBranches = append(seenBranches, ctx.Branch())
 			mu.Unlock()
@@ -140,7 +140,7 @@ func TestParallelWorker_RetryKeepsSameBranch(t *testing.T) {
 		attemptsByBranch = map[string]int{}
 	)
 	wrapped := NewFunctionNode(wrappedName,
-		func(ctx agent.InvocationContext, input string) (string, error) {
+		func(ctx agent.CallbackContext, input string) (string, error) {
 			mu.Lock()
 			attemptsByBranch[ctx.Branch()]++
 			mu.Unlock()

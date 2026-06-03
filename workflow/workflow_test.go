@@ -90,7 +90,7 @@ func (m *MockInvocationContext) WithContext(ctx context.Context) agent.Invocatio
 }
 
 func TestFunctionNode(t *testing.T) {
-	upperFn := func(ctx agent.InvocationContext, input string) (string, error) {
+	upperFn := func(ctx agent.CallbackContext, input string) (string, error) {
 		return strings.ToUpper(input), nil
 	}
 
@@ -120,7 +120,7 @@ func TestFunctionNode(t *testing.T) {
 }
 
 func TestSequentialWorkflow(t *testing.T) {
-	upperFn := func(ctx agent.InvocationContext, input any) (string, error) {
+	upperFn := func(ctx agent.CallbackContext, input any) (string, error) {
 		s, ok := input.(string)
 		if !ok {
 			return "", fmt.Errorf("expected string input")
@@ -128,7 +128,7 @@ func TestSequentialWorkflow(t *testing.T) {
 		return strings.ToUpper(s), nil
 	}
 
-	suffixFn := func(ctx agent.InvocationContext, input string) (string, error) {
+	suffixFn := func(ctx agent.CallbackContext, input string) (string, error) {
 		return input + " done", nil
 	}
 
@@ -280,11 +280,11 @@ func TestWorkflowRouting(t *testing.T) {
 		nodeX := &CustomRouteNode{
 			BaseNode: NewBaseNode("X", "", defaultNodeConfig),
 		}
-		nodeA := NewFunctionNode("A", func(ctx agent.InvocationContext, input any) (string, error) {
+		nodeA := NewFunctionNode("A", func(ctx agent.CallbackContext, input any) (string, error) {
 			record(tracker, "A")
 			return "pathA", nil
 		}, defaultNodeConfig)
-		nodeB := NewFunctionNode("B", func(ctx agent.InvocationContext, input any) (string, error) {
+		nodeB := NewFunctionNode("B", func(ctx agent.CallbackContext, input any) (string, error) {
 			record(tracker, "B")
 			return "pathB", nil
 		}, defaultNodeConfig)
@@ -295,7 +295,7 @@ func TestWorkflowRouting(t *testing.T) {
 				record(tracker, "C")
 			},
 		}
-		nodeD := NewFunctionNode("D", func(ctx agent.InvocationContext, input any) (string, error) {
+		nodeD := NewFunctionNode("D", func(ctx agent.CallbackContext, input any) (string, error) {
 			record(tracker, "D")
 			return "pathD", nil
 		}, defaultNodeConfig)

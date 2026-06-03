@@ -195,7 +195,7 @@ func TestDynamicNode_TerminalOutputEvent(t *testing.T) {
 // the pair as "multiple outputs per activation".
 func TestDynamicNode_Integration_ChildAndParentOutputs(t *testing.T) {
 	helloNode := NewFunctionNode("hello_node",
-		func(_ agent.InvocationContext, _ string) (string, error) {
+		func(_ agent.CallbackContext, _ string) (string, error) {
 			return "Hello World", nil
 		},
 		NodeConfig{},

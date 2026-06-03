@@ -559,7 +559,7 @@ func runFreshTurn(t *testing.T, sess *fakeSession, a agent.Agent, text string) [
 func newStringHandlerNode(name string, dst *atomic.Value) workflow.Node {
 	return workflow.NewFunctionNode(
 		name,
-		func(_ agent.InvocationContext, input string) (string, error) {
+		func(_ agent.CallbackContext, input string) (string, error) {
 			dst.Store(input)
 			return "handled:" + input, nil
 		},
@@ -572,7 +572,7 @@ func newStringHandlerNode(name string, dst *atomic.Value) workflow.Node {
 func newMapHandlerNode(name string, dst *atomic.Value) workflow.Node {
 	return workflow.NewFunctionNode(
 		name,
-		func(_ agent.InvocationContext, input map[string]any) (any, error) {
+		func(_ agent.CallbackContext, input map[string]any) (any, error) {
 			dst.Store(input)
 			return nil, nil
 		},
@@ -586,7 +586,7 @@ func newMapHandlerNode(name string, dst *atomic.Value) workflow.Node {
 func newCountingHandlerNode(name string, counter *atomic.Int32) workflow.Node {
 	return workflow.NewFunctionNode(
 		name,
-		func(_ agent.InvocationContext, _ any) (any, error) {
+		func(_ agent.CallbackContext, _ any) (any, error) {
 			counter.Add(1)
 			return nil, nil
 		},
@@ -600,7 +600,7 @@ func newCountingHandlerNode(name string, counter *atomic.Int32) workflow.Node {
 func newFlagHandlerNode(name string, flag *atomic.Bool) workflow.Node {
 	return workflow.NewFunctionNode(
 		name,
-		func(_ agent.InvocationContext, _ any) (any, error) {
+		func(_ agent.CallbackContext, _ any) (any, error) {
 			flag.Store(true)
 			return nil, nil
 		},

@@ -94,7 +94,7 @@ func runSequentialFanOut(t *testing.T, childName string, extraOpts []RunNodeOpti
 	var seenBranches []string
 	peekerNode := NewFunctionNode(
 		childName,
-		func(ctx agent.InvocationContext, input string) (string, error) {
+		func(ctx agent.CallbackContext, input string) (string, error) {
 			seenBranches = append(seenBranches, ctx.Branch())
 			return input, nil
 		},

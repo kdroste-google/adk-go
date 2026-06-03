@@ -17,6 +17,7 @@ package workflow
 import (
 	"fmt"
 	"iter"
+	"log"
 
 	"github.com/google/jsonschema-go/jsonschema"
 	"google.golang.org/genai"
@@ -29,17 +30,17 @@ import (
 // FunctionNode wraps a custom function.
 type FunctionNode struct {
 	BaseNode
-	fn func(ctx agent.InvocationContext, input any) (any, error)
+	fn func(ctx agent.CallbackContext, input any) (any, error)
 }
 
 // NewFunctionNode creates a new node wrapping a custom function using generics to automatically infer input and output types.
-func NewFunctionNode[IN, OUT any](name string, fn func(ctx agent.InvocationContext, input IN) (OUT, error), cfg NodeConfig) *FunctionNode {
+func NewFunctionNode[IN, OUT any](name string, fn func(ctx agent.CallbackContext, input IN) (OUT, error), cfg NodeConfig) *FunctionNode {
 	defer debugExit(debugEnter("NewFunctionNode"))
 	return newFunctionNodeWithResolvedSchemas[IN, OUT](name, fn, nil, nil, cfg)
 }
 
 // NewFunctionNodeWithSchema creates a new node wrapping a custom function using generics to automatically infer input and output types.
-func NewFunctionNodeWithSchema[IN, OUT any](name string, fn func(ctx agent.InvocationContext, input IN) (OUT, error), inputSchema, outputSchema *jsonschema.Schema, cfg NodeConfig) (*FunctionNode, error) {
+func NewFunctionNodeWithSchema[IN, OUT any](name string, fn func(ctx agent.CallbackContext, input IN) (OUT, error), inputSchema, outputSchema *jsonschema.Schema, cfg NodeConfig) (*FunctionNode, error) {
 	defer debugExit(debugEnter("NewFunctionNodeWithSchema"))
 	var ischema *jsonschema.Resolved
 	var err error
@@ -62,9 +63,9 @@ func NewFunctionNodeWithSchema[IN, OUT any](name string, fn func(ctx agent.Invoc
 }
 
 // newFunctionNodeWithResolvedSchemas is an internal constructor that consumes already resolved schemas.
-func newFunctionNodeWithResolvedSchemas[IN, OUT any](name string, fn func(ctx agent.InvocationContext, input IN) (OUT, error), inputSchema, outputSchema *jsonschema.Resolved, cfg NodeConfig) *FunctionNode {
+func newFunctionNodeWithResolvedSchemas[IN, OUT any](name string, fn func(ctx agent.CallbackContext, input IN) (OUT, error), inputSchema, outputSchema *jsonschema.Resolved, cfg NodeConfig) *FunctionNode {
 	defer debugExit(debugEnter("newFunctionNodeWithResolvedSchemas"))
-	wrappedFn := func(ctx agent.InvocationContext, input any) (any, error) {
+	wrappedFn := func(ctx agent.CallbackContext, input any) (any, error) {
 		defer debugExit(debugEnter("FunctionNode.wrappedFn"))
 		var output OUT
 		var err error
@@ -109,7 +110,10 @@ func (n *FunctionNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*se
 	defer debugExit(debugEnter("FunctionNode.Run"))
 	return func(yield func(*session.Event, error) bool) {
 		defer debugExit(debugEnter("FunctionNode.Run.iter"))
-		output, err := n.fn(ctx, input)
+
+		actions := &session.EventActions{StateDelta: make(map[string]any), ArtifactDelta: make(map[string]int64)}
+		callbackCtx := agent.NewCallbackContext(ctx, actions)
+		output, err := n.fn(callbackCtx, input)
 		if err != nil {
 			yield(nil, err)
 			return
@@ -117,6 +121,10 @@ func (n *FunctionNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*se
 
 		event := session.NewEvent(ctx.InvocationID())
 		event.Output = output
+		event.Actions = *actions
+
+		log.Printf("%+v\n", actions.StateDelta)
+
 		if s, ok := output.(string); ok {
 			event.Content = &genai.Content{
 				Parts: []*genai.Part{{Text: s}},

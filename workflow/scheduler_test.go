@@ -163,14 +163,14 @@ func TestScheduler_CallerBreakStopsScheduling(t *testing.T) {
 
 	var bRan, cRan atomic.Bool
 
-	a := NewFunctionNode("A", func(ctx agent.InvocationContext, input any) (string, error) {
+	a := NewFunctionNode("A", func(ctx agent.CallbackContext, input any) (string, error) {
 		return "a-out", nil
 	}, defaultNodeConfig)
-	b := NewFunctionNode("B", func(ctx agent.InvocationContext, input any) (string, error) {
+	b := NewFunctionNode("B", func(ctx agent.CallbackContext, input any) (string, error) {
 		bRan.Store(true)
 		return "b-out", nil
 	}, defaultNodeConfig)
-	c := NewFunctionNode("C", func(ctx agent.InvocationContext, input any) (string, error) {
+	c := NewFunctionNode("C", func(ctx agent.CallbackContext, input any) (string, error) {
 		cRan.Store(true)
 		return "c-out", nil
 	}, defaultNodeConfig)

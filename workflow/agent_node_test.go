@@ -342,7 +342,7 @@ func TestAgentNode_WorkflowIntegration(t *testing.T) {
 			}
 
 			// Connect to a function node.
-			functionNode := NewFunctionNode[Output, int]("plus_one", func(ctx agent.InvocationContext, in Output) (int, error) {
+			functionNode := NewFunctionNode[Output, int]("plus_one", func(ctx agent.CallbackContext, in Output) (int, error) {
 				return in.Result + 1, nil
 			}, NodeConfig{})
 
@@ -351,7 +351,7 @@ func TestAgentNode_WorkflowIntegration(t *testing.T) {
 
 			t.Run("WorkflowExecution", func(t *testing.T) {
 				// Use a seed node to pass the struct input to agentNode
-				seedNode := NewFunctionNode("seed", func(ctx agent.InvocationContext, input any) (*Input, error) {
+				seedNode := NewFunctionNode("seed", func(ctx agent.CallbackContext, input any) (*Input, error) {
 					return &Input{Val: tc.input}, nil
 				}, NodeConfig{})
 

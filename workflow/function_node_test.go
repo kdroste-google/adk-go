@@ -38,7 +38,7 @@ func TestNewFunctionNodeWithSchema(t *testing.T) {
 	tests := []struct {
 		name         string
 		nodeName     string
-		fn           func(ctx agent.InvocationContext, input Input) (map[string]any, error)
+		fn           func(ctx agent.CallbackContext, input Input) (map[string]any, error)
 		inputSchema  *jsonschema.Schema
 		outputSchema *jsonschema.Schema
 		input        any
@@ -49,7 +49,7 @@ func TestNewFunctionNodeWithSchema(t *testing.T) {
 		{
 			name:     "Success",
 			nodeName: "upper",
-			fn: func(ctx agent.InvocationContext, input Input) (map[string]any, error) {
+			fn: func(ctx agent.CallbackContext, input Input) (map[string]any, error) {
 				return map[string]any{"result": strings.ToUpper(input.Value)}, nil
 			},
 			inputSchema:  mustSchema[Input](t),
@@ -61,7 +61,7 @@ func TestNewFunctionNodeWithSchema(t *testing.T) {
 		{
 			name:     "NilInput",
 			nodeName: "nil_test",
-			fn: func(ctx agent.InvocationContext, input Input) (map[string]any, error) {
+			fn: func(ctx agent.CallbackContext, input Input) (map[string]any, error) {
 				if input.Value == "" {
 					return map[string]any{"result": "zero"}, nil
 				}
@@ -76,7 +76,7 @@ func TestNewFunctionNodeWithSchema(t *testing.T) {
 		{
 			name:     "ValidationError",
 			nodeName: "test",
-			fn: func(ctx agent.InvocationContext, input Input) (map[string]any, error) {
+			fn: func(ctx agent.CallbackContext, input Input) (map[string]any, error) {
 				return map[string]any{"result": "not-an-int"}, nil
 			},
 			inputSchema:  mustSchema[Input](t),
