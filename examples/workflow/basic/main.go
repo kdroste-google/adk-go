@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -32,15 +33,26 @@ func main() {
 
 	// 1. Define functions for nodes
 	// The first node will receive the user message as input (string).
-	upperFn := func(ctx agent.InvocationContext, input string) (string, error) {
+	upperFn := func(ctx agent.CallbackContext, input string) (string, error) {
 		if input == "" {
+			ctx.State().Set("input", "NONE!!")
 			return "No input received", nil
 		}
+		ctx.State().Set("input", input)
+
 		return strings.ToUpper(input), nil
 	}
 
-	suffixFn := func(ctx agent.InvocationContext, input string) (string, error) {
-		return input + " IS AWESOME!", nil
+	suffixFn := func(ctx agent.CallbackContext, input string) (string, error) {
+		v, err := ctx.State().Get("input")
+		info := ""
+		if err == nil {
+			info = fmt.Sprintf("'input' found: %+v", v)
+		} else {
+			info = "no 'input' found"
+		}
+
+		return input + " IS AWESOME! " + info, nil
 	}
 
 	// 2. Create Nodes
