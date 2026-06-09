@@ -15,6 +15,7 @@
 package workflow
 
 import (
+	"encoding/json"
 	"fmt"
 	"iter"
 	"log"
@@ -130,6 +131,17 @@ func (n *FunctionNode) Run(ctx agent.InvocationContext, input any) iter.Seq2[*se
 				Parts: []*genai.Part{{Text: s}},
 			}
 		}
+		dumpEvent("FunctionNode "+n.Name(), event)
 		yield(event, nil)
 	}
+}
+
+func dumpEvent(msg string, event *session.Event) {
+	b, err := json.Marshal(event)
+	if err != nil {
+		log.Printf("error marshalling event: %v", err)
+		return
+	}
+	s := fmt.Sprintf("event from %s: %s", msg, string(b))
+	debugPrint(s)
 }
