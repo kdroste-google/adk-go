@@ -150,7 +150,7 @@ func (nr *nodeRun) recordErr(err error) {
 // setRoutingEvent stores ev as the node's single routing event. A
 // second call records ErrMultipleRoutingEvents instead of overwriting.
 func (nr *nodeRun) setRoutingEvent(ev *session.Event, nodeName string) {
-	defer debugExit(debugEnter("nodeRun.setRoutingEvent"))
+	defer debugExit(debugEnter("nodeRun.setRoutingEvent: " + nodeName))
 	if nr.routingEvent != nil {
 		nr.recordErr(fmt.Errorf("%w: node %q", ErrMultipleRoutingEvents, nodeName))
 		return
@@ -165,7 +165,7 @@ func (nr *nodeRun) setRoutingEvent(ev *session.Event, nodeName string) {
 // NodeFailed (the waiting branch is gated on nr.err == nil so a
 // node that requested twice does not silently park).
 func (nr *nodeRun) setInputRequest(req *session.RequestInput, nodeName string) {
-	defer debugExit(debugEnter("nodeRun.setInputRequest"))
+	defer debugExit(debugEnter("nodeRun.setInputRequest" + nodeName))
 	if nr.inputRequest != nil {
 		nr.recordErr(fmt.Errorf("%w: node %q", ErrMultipleInputRequests, nodeName))
 		return
@@ -176,7 +176,7 @@ func (nr *nodeRun) setInputRequest(req *session.RequestInput, nodeName string) {
 // setOutput stores out as the node's single output value. A second
 // call records ErrMultipleOutputs instead of overwriting.
 func (nr *nodeRun) setOutput(out any, nodeName string) {
-	defer debugExit(debugEnter("nodeRun.setOutput"))
+	defer debugExit(debugEnter("nodeRun.setOutput" + nodeName))
 	if nr.hasOutput {
 		nr.recordErr(fmt.Errorf("%w: node %q", ErrMultipleOutputs, nodeName))
 		return
@@ -284,7 +284,7 @@ func buildNodesByName(g *graph) map[string]Node {
 //
 // scheduleNode runs only on the consumer goroutine.
 func (s *scheduler) scheduleNode(n Node, input any, triggeredBy, branch string) {
-	defer debugExit(debugEnter("scheduler.scheduleNode"))
+	defer debugExit(debugEnter("scheduler.scheduleNode: " + n.Name()))
 	s.scheduleResumedNode(n, input, triggeredBy, branch, nil)
 }
 
@@ -325,7 +325,7 @@ func (s *scheduler) tryDispatchPending() {
 //
 // scheduleResumedNode runs only on the consumer goroutine.
 func (s *scheduler) scheduleResumedNode(n Node, input any, triggeredBy, branch string, resumeInputs map[string]any) {
-	defer debugExit(debugEnter("scheduler.scheduleResumedNode"))
+	defer debugExit(debugEnter("scheduler.scheduleResumedNode: " + n.Name()))
 	if s.atConcurrencyLimit() {
 		name := n.Name()
 		ns := s.state.EnsureNode(name)
@@ -351,7 +351,7 @@ func (s *scheduler) scheduleResumedNode(n Node, input any, triggeredBy, branch s
 // concurrency-cap check is done by scheduleResumedNode (the
 // public entry point) before reaching here.
 func (s *scheduler) startNode(n Node, input any, triggeredBy, branch string, resumeInputs map[string]any) {
-	defer debugExit(debugEnter("scheduler.startNode"))
+	defer debugExit(debugEnter("scheduler.startNode: " + n.Name()))
 	name := n.Name()
 
 	// Per-node context: WithTimeout when Config().Timeout > 0,
@@ -440,7 +440,7 @@ func runNode(
 	ctx agent.InvocationContext,
 	input any,
 ) {
-	defer debugExit(debugEnter("runNode"))
+	defer debugExit(debugEnter("runNode: " + name + " n.Name(): " + n.Name()))
 	defer wg.Done()
 
 	span, ctx := startNodeSpan(ctx, n)
@@ -590,7 +590,7 @@ func (s *scheduler) run(yield func(*session.Event, error) bool) {
 // matches InterruptID against the parent's NodeState.PendingRequest,
 // so the parent must transition to NodeWaiting on a descendant pause.
 func (s *scheduler) handleEvent(it eventItem) {
-	defer debugExit(debugEnter("scheduler.handleEvent"))
+	defer debugExit(debugEnter(fmt.Sprintf("scheduler.handleEvent: %v: %+v", it.nodeName, it.ev)))
 	nr := s.runsByName[it.nodeName]
 	if nr == nil {
 		// Defensive: completion already processed for this node;

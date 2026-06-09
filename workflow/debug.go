@@ -55,6 +55,14 @@ func debugEnter(name string) string {
 	return name
 }
 
+func debugPrint(s string) {
+	if !debugEnabled {
+		return
+	}
+	depth := atomic.AddInt64(&debugDepth, 1) - 1
+	fmt.Fprintf(os.Stderr, "%s-> %s\n", strings.Repeat(debugIndentUnit, int(depth)), s)
+}
+
 // debugExit logs a function exit. It is intended to be used together with
 // debugEnter via a deferred call.
 func debugExit(name string) {
