@@ -16,9 +16,9 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/modelcontextprotocol/go-sdk v1.7.0
-	github.com/openai/openai-go/v3 v3.49.0
+	github.com/openai/openai-go/v3 v3.50.0
 	github.com/spf13/cobra v1.10.2
-	go.opentelemetry.io/contrib/detectors/gcp v1.44.0
+	go.opentelemetry.io/contrib/detectors/gcp v1.45.0
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.21.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.45.0
@@ -27,8 +27,8 @@ require (
 	go.opentelemetry.io/otel/trace v1.45.0
 	golang.org/x/oauth2 v0.36.0
 	golang.org/x/sync v0.22.0
-	google.golang.org/api v0.291.0
-	google.golang.org/genai v1.66.0
+	google.golang.org/api v0.292.0
+	google.golang.org/genai v1.67.0
 	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
@@ -55,7 +55,7 @@ require (
 	cloud.google.com/go/iam v1.11.0 // indirect
 	cloud.google.com/go/longrunning v1.2.0
 	cloud.google.com/go/monitoring v1.29.0 // indirect
-	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.33.0 // indirect
+	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.35.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.57.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.57.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
